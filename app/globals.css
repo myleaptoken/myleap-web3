@@ -164,7 +164,7 @@
 }
 
 .title-shimmer-text {
-  background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 20%, #0ea5e9 40%, #38bdf8 60%, #06b6d4 80%, #22d3ee 100%);
+  background: linear-gradient(135deg, #22d3ee 0%, #67e8f9 18%, #06b6d4 36%, #22d3ee 54%, #67e8f9 72%, #06b6d4 90%);
   background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -173,7 +173,7 @@
 }
 
 .dark .title-shimmer-text {
-  background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 20%, #0ea5e9 40%, #67e8f9 60%, #06b6d4 80%, #22d3ee 100%);
+  background: linear-gradient(135deg, #22d3ee 0%, #67e8f9 18%, #a5f3fc 36%, #22d3ee 54%, #67e8f9 72%, #06b6d4 90%);
   background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -182,7 +182,7 @@
 }
 
 .subtitle-shimmer-text {
-  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 20%, #22d3ee 40%, #0ea5e9 60%, #0891b2 80%, #22d3ee 100%);
+  background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 18%, #67e8f9 36%, #06b6d4 54%, #22d3ee 72%, #67e8f9 90%);
   background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -191,7 +191,7 @@
 }
 
 .dark .subtitle-shimmer-text {
-  background: linear-gradient(135deg, #22d3ee 0%, #67e8f9 20%, #ffffff 40%, #22d3ee 60%, #67e8f9 80%, #ffffff 100%);
+  background: linear-gradient(135deg, #22d3ee 0%, #67e8f9 18%, #ffffff 36%, #22d3ee 54%, #67e8f9 72%, #ffffff 90%);
   background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

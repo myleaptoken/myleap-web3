@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { BadgeCheck } from "lucide-react"
+
 
 export function ProfileHeader() {
   return (
@@ -31,9 +31,7 @@ export function ProfileHeader() {
               className="h-full w-full object-cover"
             />
           </div>
-          <div className="absolute -bottom-1 -right-1 rounded-full bg-primary p-1.5">
-            <BadgeCheck className="h-5 w-5 text-primary-foreground" />
-          </div>
+
         </div>
 
         {/* Name & Bio */}
