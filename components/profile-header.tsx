@@ -9,7 +9,7 @@ export function ProfileHeader() {
       {/* Banner */}
       <div className="relative h-44 sm:h-56 md:h-64 w-full overflow-hidden rounded-b-2xl">
         <Image
-          src="/images/banner.jpg"
+          src="/images/banner.png"
           alt="Banner de perfil MyLeap"
           fill
           className="object-cover"
