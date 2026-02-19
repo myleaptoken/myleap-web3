@@ -33,7 +33,6 @@ const ctaLinks: CTALink[] = [
     href: "#metodo-one",
     icon: <GraduationCap className="h-5 w-5" />,
     variant: "accent",
-    badge: "NUEVO",
   },
   {
     title: "E-book: El Poder Sanador de la Energ\u00eda",
@@ -41,6 +40,7 @@ const ctaLinks: CTALink[] = [
     href: "#ebook",
     icon: <BookOpen className="h-5 w-5" />,
     variant: "secondary",
+    badge: "NUEVO",
   },
   {
     title: "Consulta 1:1 Personalizada",
