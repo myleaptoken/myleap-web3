@@ -14,24 +14,16 @@ const nunitoSans = Nunito_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'MyLeap | Tu Salto Digital',
-  description: 'Perfil de empresa MyLeap - Cursos, recursos y comunidad para tu crecimiento digital.',
+  title: 'MY LEAP | Tu Salto de Energía',
+  description: 'Perfil de empresa MY LEAP - Cursos, facilitadores, eventos y una comunidad para impulsar tu energía vital.',
   generator: 'v0.app',
+  openGraph: {
+    title: 'MY LEAP | Tu Salto de Energía',
+    description: 'Cursos, facilitadores, eventos y una comunidad para impulsar tu energía vital.',
+    images: ['/favicon.png'],
+  },
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
+    icon: '/favicon.png',
     apple: '/apple-icon.png',
   },
 }
