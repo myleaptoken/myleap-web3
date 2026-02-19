@@ -10,7 +10,7 @@ export default function ProfilePage() {
   return (
     <>
       <AmbientBackground />
-      <main className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center px-4 pb-4">
+      <main className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center px-4 pb-6">
         {/* Profile Header with Banner + Avatar + Bio + Stats */}
         <ProfileHeader />
 
