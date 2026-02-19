@@ -48,11 +48,11 @@ export function ProfileHeader() {
 
         {/* Stats */}
         <div className="mt-6 flex items-center gap-6 sm:gap-10 animate-fade-up" style={{ animationDelay: "0.15s" }}>
-          <StatItem value="10K+" label="Seguidores" />
+          <StatItem value="1K+" label="Leapers" />
           <div className="h-8 w-px bg-border" />
-          <StatItem value="2+" label="Cursos" />
+          <StatItem value="200+" label="Cursos Imp." />
           <div className="h-8 w-px bg-border" />
-          <StatItem value="1K+" label="Estudiantes" />
+          <StatItem value="500+" label="Estudiantes" />
         </div>
       </div>
     </div>

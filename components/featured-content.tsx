@@ -1,6 +1,6 @@
 "use client"
 
-import { Play, Star, Clock, Users } from "lucide-react"
+import { Play, Clock, Users } from "lucide-react"
 
 interface FeaturedItem {
   title: string
@@ -17,20 +17,18 @@ const featured: FeaturedItem[] = [
     subtitle: "Inicia tu camino en la sanaci\u00f3n energ\u00e9tica",
     image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=250&fit=crop",
     stats: [
-      { icon: <Star className="h-3.5 w-3.5 text-primary" />, label: "4.9" },
-      { icon: <Users className="h-3.5 w-3.5 text-primary" />, label: "1.2K" },
-      { icon: <Clock className="h-3.5 w-3.5 text-primary" />, label: "6h" },
+      { icon: <Users className="h-3.5 w-3.5 text-primary" />, label: "Ilimitado" },
+      { icon: <Clock className="h-3.5 w-3.5 text-primary" />, label: "4h" },
     ],
     href: "#metodo-one",
-    tag: "Bestseller",
+    tag: "Curso",
   },
   {
     title: "Sanaci\u00f3n Grupal a Distancia",
     subtitle: "Conectate a la videollamada y sana en grupo",
     image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=250&fit=crop",
     stats: [
-      { icon: <Star className="h-3.5 w-3.5 text-primary" />, label: "4.8" },
-      { icon: <Users className="h-3.5 w-3.5 text-primary" />, label: "800" },
+      { icon: <Users className="h-3.5 w-3.5 text-primary" />, label: "Ilimitado" },
       { icon: <Clock className="h-3.5 w-3.5 text-primary" />, label: "1.5h" },
     ],
     href: "#sanacion-grupal",
