@@ -38,15 +38,7 @@ export function ProfileHeader() {
 
         {/* Name & Bio */}
         <div className="mt-4 flex flex-col items-center text-center animate-fade-up">
-          <h1
-            className="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-balance"
-            style={{
-              background: "linear-gradient(90deg, #22d3ee, #0284c7, #1e40af)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
+          <h1 className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-balance title-shimmer-text">
             MY LEAP
           </h1>
           <p className="mt-1 text-sm sm:text-base text-primary font-medium flex items-center gap-1.5">

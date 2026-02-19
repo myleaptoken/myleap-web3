@@ -157,6 +157,24 @@
   100% { background-position: 100% 0; }
 }
 
+.title-shimmer-text {
+  background: linear-gradient(90deg, #22d3ee 0%, #0284c7 25%, #1e40af 50%, #0284c7 75%, #22d3ee 100%);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: subtitle-shimmer 6s ease-in-out infinite;
+}
+
+.dark .title-shimmer-text {
+  background: linear-gradient(90deg, #22d3ee 0%, #0284c7 25%, #1e40af 50%, #0284c7 75%, #22d3ee 100%);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: subtitle-shimmer 6s ease-in-out infinite;
+}
+
 .subtitle-shimmer-text {
   background: linear-gradient(90deg, #0891b2 0%, #1e3a8a 25%, #0ea5e9 50%, #1e3a8a 75%, #0891b2 100%);
   background-size: 300% 100%;
