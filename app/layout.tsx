@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Space_Grotesk } from 'next/font/google'
+import { Nunito, Nunito_Sans } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const inter = Inter({
+const nunito = Nunito({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-nunito',
 })
 
-const spaceGrotesk = Space_Grotesk({
+const nunitoSans = Nunito_Sans({
   subsets: ['latin'],
-  variable: '--font-space-grotesk',
+  variable: '--font-nunito-sans',
 })
 
 export const metadata: Metadata = {
@@ -65,7 +65,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
+      <body className={`${nunito.variable} ${nunitoSans.variable} font-sans antialiased`}>
         {children}
         <Analytics />
       </body>

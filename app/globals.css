@@ -75,8 +75,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), 'Inter', sans-serif;
-  --font-mono: var(--font-space-grotesk), 'Space Grotesk', monospace;
+  --font-sans: var(--font-nunito-sans), 'Nunito Sans', sans-serif;
+  --font-mono: var(--font-nunito), 'Nunito', sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -157,38 +157,44 @@
   100% { background-position: 100% 0; }
 }
 
+@keyframes diagonal-shimmer {
+  0% { background-position: 100% 100%; }
+  50% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
 .title-shimmer-text {
-  background: linear-gradient(90deg, #22d3ee 0%, #0284c7 25%, #1e40af 50%, #0284c7 75%, #22d3ee 100%);
-  background-size: 300% 100%;
+  background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 20%, #0ea5e9 40%, #38bdf8 60%, #06b6d4 80%, #22d3ee 100%);
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: subtitle-shimmer 6s ease-in-out infinite;
+  animation: diagonal-shimmer 6s ease-in-out infinite;
 }
 
 .dark .title-shimmer-text {
-  background: linear-gradient(90deg, #22d3ee 0%, #0284c7 25%, #1e40af 50%, #0284c7 75%, #22d3ee 100%);
-  background-size: 300% 100%;
+  background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 20%, #0ea5e9 40%, #67e8f9 60%, #06b6d4 80%, #22d3ee 100%);
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: subtitle-shimmer 6s ease-in-out infinite;
+  animation: diagonal-shimmer 6s ease-in-out infinite;
 }
 
 .subtitle-shimmer-text {
-  background: linear-gradient(90deg, #0891b2 0%, #1e3a8a 25%, #0ea5e9 50%, #1e3a8a 75%, #0891b2 100%);
-  background-size: 300% 100%;
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 20%, #22d3ee 40%, #0ea5e9 60%, #0891b2 80%, #22d3ee 100%);
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: subtitle-shimmer 6s ease-in-out infinite;
+  animation: diagonal-shimmer 6s ease-in-out infinite;
 }
 
 .dark .subtitle-shimmer-text {
-  background: linear-gradient(90deg, var(--primary) 0%, #ffffff 25%, var(--primary) 50%, #ffffff 75%, var(--primary) 100%);
-  background-size: 300% 100%;
+  background: linear-gradient(135deg, #22d3ee 0%, #67e8f9 20%, #ffffff 40%, #22d3ee 60%, #67e8f9 80%, #ffffff 100%);
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: subtitle-shimmer 6s ease-in-out infinite;
+  animation: diagonal-shimmer 6s ease-in-out infinite;
 }

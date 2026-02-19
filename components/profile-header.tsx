@@ -38,7 +38,7 @@ export function ProfileHeader() {
 
         {/* Name & Bio */}
         <div className="mt-4 flex flex-col items-center text-center animate-fade-up">
-          <h1 className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-balance title-shimmer-text">
+          <h1 className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-balance title-shimmer-text">
             MY LEAP
           </h1>
           <p className="mt-1 text-sm sm:text-base text-primary font-medium flex items-center gap-1.5">
