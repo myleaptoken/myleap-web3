@@ -1,19 +1,15 @@
 "use client"
 
-import Image from "next/image"
-
-
 export function ProfileHeader() {
   return (
     <div className="relative w-full">
       {/* Banner */}
       <div className="relative h-44 sm:h-56 md:h-64 w-full overflow-hidden rounded-b-2xl">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src="/images/banner.png"
           alt="Banner de perfil MyLeap"
-          fill
-          className="object-cover"
-          priority
+          className="absolute inset-0 h-full w-full object-cover object-[center_30%]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
       </div>
