@@ -21,7 +21,7 @@ export function ProfileHeader() {
       {/* Avatar */}
       <div className="relative -mt-16 sm:-mt-20 flex flex-col items-center px-4">
         <div className="relative animate-scale-in">
-          <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full border-4 border-background overflow-hidden animate-pulse-glow">
+          <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full border-4 border-[#0d1a2d] overflow-hidden animate-pulse-glow">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/avatar.png"
@@ -43,17 +43,7 @@ export function ProfileHeader() {
           </h1>
           <p className="mt-1 text-sm sm:text-base text-primary font-medium flex items-center gap-1.5">
             <span className="font-normal">Potenciado Por</span>
-            <span
-              className="text-base sm:text-lg font-bold tracking-wide"
-              style={{
-                background: "linear-gradient(90deg, var(--primary) 0%, #ffffff 25%, var(--primary) 50%, #ffffff 75%, var(--primary) 100%)",
-                backgroundSize: "300% 100%",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                animation: "subtitle-shimmer 6s ease-in-out infinite",
-              }}
-            >
+            <span className="text-base sm:text-lg font-bold tracking-wide subtitle-shimmer-text">
               {'Método ONE'}
             </span>
           </p>

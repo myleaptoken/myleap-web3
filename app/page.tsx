@@ -5,10 +5,12 @@ import { FeaturedContent } from "@/components/featured-content"
 import { EmailCapture } from "@/components/email-capture"
 import { ProfileFooter } from "@/components/profile-footer"
 import { AmbientBackground } from "@/components/ambient-background"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function ProfilePage() {
   return (
     <>
+      <ThemeToggle />
       <AmbientBackground />
       <main className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center px-4 pb-6">
         {/* Profile Header with Banner + Avatar + Bio + Stats */}
