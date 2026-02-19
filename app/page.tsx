@@ -12,7 +12,7 @@ export default function ProfilePage() {
     <>
       <ThemeToggle />
       <AmbientBackground />
-      <main className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center px-4 pb-6">
+      <main className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center px-4 pb-8">
         {/* Profile Header with Banner + Avatar + Bio + Stats */}
         <ProfileHeader />
 
