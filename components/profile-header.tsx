@@ -39,23 +39,23 @@ export function ProfileHeader() {
         {/* Name & Bio */}
         <div className="mt-4 flex flex-col items-center text-center animate-fade-up">
           <h1 className="text-2xl sm:text-3xl font-bold font-mono text-foreground tracking-tight text-balance">
-            MyLeap
+            MY LEAP
           </h1>
           <p className="mt-1 text-sm sm:text-base text-primary font-medium">
-            @myleap
+            {'@myleap Powered By Método ONE'}
           </p>
           <p className="mt-3 max-w-md text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty">
-            Tu salto al mundo digital. Cursos, herramientas y comunidad para impulsar tu crecimiento profesional y emprendimiento online.
+            Tu salto a la sanación. Cursos, facilitadores, eventos y una comunidad para impulsar tu energía vital.
           </p>
         </div>
 
         {/* Stats */}
         <div className="mt-6 flex items-center gap-6 sm:gap-10 animate-fade-up" style={{ animationDelay: "0.15s" }}>
-          <StatItem value="12K+" label="Seguidores" />
+          <StatItem value="10K+" label="Seguidores" />
           <div className="h-8 w-px bg-border" />
-          <StatItem value="50+" label="Cursos" />
+          <StatItem value="2+" label="Cursos" />
           <div className="h-8 w-px bg-border" />
-          <StatItem value="8K+" label="Estudiantes" />
+          <StatItem value="1K+" label="Estudiantes" />
         </div>
       </div>
     </div>
