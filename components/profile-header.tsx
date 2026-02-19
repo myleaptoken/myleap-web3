@@ -42,7 +42,7 @@ export function ProfileHeader() {
             MY LEAP
           </h1>
           <p className="mt-1 text-sm sm:text-base text-primary font-medium flex items-center gap-1.5">
-            <span>Powered By</span>
+            <span className="font-normal">Potenciado Por</span>
             <span
               className="text-base sm:text-lg font-bold tracking-wide"
               style={{
