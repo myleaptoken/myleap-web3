@@ -23,7 +23,7 @@ export function ProfileHeader() {
         <div className="relative animate-scale-in">
           <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full border-4 border-background overflow-hidden animate-pulse-glow">
             <Image
-              src="/images/avatar.jpg"
+              src="/images/avatar.png"
               alt="MyLeap Logo"
               width={128}
               height={128}
