@@ -41,8 +41,21 @@ export function ProfileHeader() {
           <h1 className="text-2xl sm:text-3xl font-bold font-mono text-foreground tracking-tight text-balance">
             MY LEAP
           </h1>
-          <p className="mt-1 text-sm sm:text-base text-primary font-medium">
-            {'@myleap Powered By Método ONE'}
+          <p className="mt-1 text-sm sm:text-base text-primary font-medium flex items-center gap-1.5">
+            <span>Powered By</span>
+            <span
+              className="text-base sm:text-lg font-bold tracking-wide"
+              style={{
+                background: "linear-gradient(90deg, var(--primary) 0%, #ffffff 25%, var(--primary) 50%, #ffffff 75%, var(--primary) 100%)",
+                backgroundSize: "300% 100%",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                animation: "subtitle-shimmer 6s ease-in-out infinite",
+              }}
+            >
+              {'Método ONE'}
+            </span>
           </p>
           <p className="mt-3 max-w-md text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty">
             Tu salto a la sanación. Cursos, facilitadores, eventos y una comunidad para impulsar tu energía vital.

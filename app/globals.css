@@ -150,3 +150,9 @@
 .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
 .animate-fade-up { animation: fade-up 0.6s ease-out both; }
 .animate-scale-in { animation: scale-in 0.5s ease-out both; }
+
+@keyframes subtitle-shimmer {
+  0% { background-position: 100% 0; }
+  50% { background-position: 0% 0; }
+  100% { background-position: 100% 0; }
+}
