@@ -21,7 +21,326 @@ import {
   Download,
   ExternalLink,
   Star,
+  ClipboardCheck,
+  Sparkles,
+  CheckCircle2,
+  ArrowRight,
+  MapPin,
 } from "lucide-react"
+
+/* ───────────────────────────────────────────
+   0) Registrate y Sana – Encuesta + Sesion Gratuita
+   ─────────────────────────────────────────── */
+
+const surveyQuestions = [
+  {
+    id: "nombre",
+    label: "Nombre completo",
+    type: "text" as const,
+    placeholder: "Tu nombre",
+  },
+  {
+    id: "email",
+    label: "Email",
+    type: "email" as const,
+    placeholder: "tu@email.com",
+  },
+  {
+    id: "dolor",
+    label: "Que tipo de malestar o dolor experimentas?",
+    type: "select" as const,
+    options: [
+      "Dolor fisico (espalda, cuello, articulaciones)",
+      "Estres o ansiedad",
+      "Cansancio cronico / fatiga",
+      "Bloqueo emocional",
+      "Insomnio o problemas de sueno",
+      "Otro",
+    ],
+  },
+  {
+    id: "experiencia",
+    label: "Has tenido alguna experiencia previa con sanacion energetica?",
+    type: "select" as const,
+    options: ["Si, varias veces", "Solo una vez", "Nunca, es mi primera vez"],
+  },
+  {
+    id: "expectativa",
+    label: "Que esperas de esta sesion gratuita?",
+    type: "select" as const,
+    options: [
+      "Aliviar un dolor o malestar especifico",
+      "Relajarme y reducir el estres",
+      "Conocer de que se trata la sanacion energetica",
+      "Conectar conmigo mismo/a",
+    ],
+  },
+]
+
+export function RegistrateYSanaModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean
+  onOpenChange: (v: boolean) => void
+}) {
+  const [step, setStep] = useState<"info" | "survey" | "success">("info")
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+
+  const handleClose = (v: boolean) => {
+    if (!v) {
+      setStep("info")
+      setAnswers({})
+    }
+    onOpenChange(v)
+  }
+
+  const allAnswered =
+    surveyQuestions.every((q) => answers[q.id] && answers[q.id].trim() !== "")
+
+  const handleSubmit = () => {
+    if (allAnswered) {
+      setStep("success")
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        {step === "info" && (
+          <>
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg font-bold text-foreground">
+                    Sanacion Energetica Gratuita
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-muted-foreground">
+                    Sesion callejera de muestra - 15 a 20 min
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="space-y-5">
+              {/* Intro */}
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Vivi en persona una experiencia de sanacion energetica totalmente gratuita.
+                Nuestros facilitadores certificados del Metodo ONE realizan sesiones
+                abiertas en espacios publicos para que puedas sentir la energia y
+                experimentar sus beneficios sin compromiso.
+              </p>
+
+              {/* Details */}
+              <div className="rounded-xl border border-border bg-secondary/50 p-4 space-y-3">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  Detalles de la Sesion
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-4 w-4 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs font-medium text-foreground">Duracion</p>
+                      <p className="text-xs text-muted-foreground">15 - 20 minutos</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Heart className="h-4 w-4 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs font-medium text-foreground">Costo</p>
+                      <p className="text-xs text-muted-foreground">100% Gratuito</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs font-medium text-foreground">Lugar</p>
+                      <p className="text-xs text-muted-foreground">Espacio publico / al aire libre</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Users className="h-4 w-4 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs font-medium text-foreground">Cupos</p>
+                      <p className="text-xs text-muted-foreground">Limitados por sesion</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* What you get */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-foreground">Que incluye la experiencia</h4>
+                <ul className="space-y-2">
+                  {[
+                    "Sesion individual de sanacion energetica de 15-20 minutos",
+                    "Facilitador certificado en el Metodo ONE",
+                    "Breve diagnostico energetico de tu estado actual",
+                    "Recomendaciones personalizadas post-sesion",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                      <span className="text-xs text-muted-foreground">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <DialogFooter className="mt-2">
+              <button
+                type="button"
+                onClick={() => setStep("survey")}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-95"
+              >
+                <ClipboardCheck className="h-4 w-4" />
+                Completar Encuesta para Acceder
+              </button>
+            </DialogFooter>
+          </>
+        )}
+
+        {step === "survey" && (
+          <>
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <ClipboardCheck className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg font-bold text-foreground">
+                    Mini Encuesta
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-muted-foreground">
+                    Completa para acceder a tu sesion gratuita
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Responde estas breves preguntas para que nuestro facilitador pueda preparar
+                tu sesion de la mejor manera posible.
+              </p>
+
+              {surveyQuestions.map((q) => (
+                <div key={q.id} className="space-y-1.5">
+                  <label
+                    htmlFor={q.id}
+                    className="text-xs font-semibold text-foreground"
+                  >
+                    {q.label}
+                  </label>
+                  {q.type === "select" ? (
+                    <select
+                      id={q.id}
+                      value={answers[q.id] || ""}
+                      onChange={(e) =>
+                        setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+                      }
+                      className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2.5 text-xs text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                    >
+                      <option value="">Selecciona una opcion</option>
+                      {q.options?.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      id={q.id}
+                      type={q.type}
+                      placeholder={q.placeholder}
+                      value={answers[q.id] || ""}
+                      onChange={(e) =>
+                        setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+                      }
+                      className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <DialogFooter className="mt-2 flex flex-col gap-2 sm:flex-col">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!allAnswered}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none disabled:cursor-not-allowed"
+              >
+                <ArrowRight className="h-4 w-4" />
+                Enviar y Reservar Mi Sesion
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep("info")}
+                className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+              >
+                Volver a la informacion
+              </button>
+            </DialogFooter>
+          </>
+        )}
+
+        {step === "success" && (
+          <>
+            <div className="flex flex-col items-center text-center py-6 space-y-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <CheckCircle2 className="h-8 w-8 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold text-foreground">
+                  Registro Exitoso
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
+                  Gracias{answers.nombre ? `, ${answers.nombre.split(" ")[0]}` : ""}! Tu sesion gratuita de sanacion
+                  energetica ha sido reservada. Te contactaremos a{" "}
+                  <span className="font-medium text-foreground">{answers.email || "tu email"}</span>{" "}
+                  con los detalles del lugar, dia y horario.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 w-full max-w-sm space-y-2">
+                <h4 className="text-sm font-semibold text-foreground">Proximos pasos</h4>
+                <ul className="space-y-1.5 text-left">
+                  {[
+                    "Revisa tu email para la confirmacion",
+                    "Llega 5 minutos antes a la sesion",
+                    "Usa ropa comoda",
+                    "Trae buena energia y mente abierta",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                      <span className="text-xs text-muted-foreground">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => handleClose(false)}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-95"
+              >
+                <Sparkles className="h-4 w-4" />
+                Cerrar
+              </button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 /* ───────────────────────────────────────────
    a) Sanacion Grupal a Distancia

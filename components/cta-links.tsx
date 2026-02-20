@@ -4,19 +4,20 @@ import { useState } from "react"
 import {
   BookOpen,
   MessageCircle,
-  ExternalLink,
   GraduationCap,
   Heart,
   ChevronRight,
+  Sparkles,
 } from "lucide-react"
 import {
+  RegistrateYSanaModal,
   SanacionGrupalModal,
   MetodoOneModal,
   EbookModal,
   ConsultaModal,
 } from "@/components/cta-modals"
 
-type ModalKey = "sanacion" | "metodo" | "ebook" | "consulta"
+type ModalKey = "registrate" | "sanacion" | "metodo" | "ebook" | "consulta"
 
 interface CTALink {
   title: string
@@ -28,6 +29,14 @@ interface CTALink {
 }
 
 const ctaLinks: CTALink[] = [
+  {
+    title: "Registrate y Sana",
+    description: "Completa la encuesta y disfruta la sanaci\u00f3n",
+    modalKey: "registrate",
+    icon: <Sparkles className="h-5 w-5" />,
+    variant: "accent",
+    badge: "GRATIS",
+  },
   {
     title: "Sanaci\u00f3n Grupal a Distancia",
     description: "Conectate a la Videollamada y sana",
@@ -88,6 +97,10 @@ export function CTALinks() {
       </div>
 
       {/* Modals */}
+      <RegistrateYSanaModal
+        open={openModal === "registrate"}
+        onOpenChange={(v) => !v && setOpenModal(null)}
+      />
       <SanacionGrupalModal
         open={openModal === "sanacion"}
         onOpenChange={(v) => !v && setOpenModal(null)}
