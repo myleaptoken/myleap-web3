@@ -7,12 +7,21 @@ import {
   ExternalLink,
   GraduationCap,
   Heart,
+  ChevronRight,
 } from "lucide-react"
+import {
+  SanacionGrupalModal,
+  MetodoOneModal,
+  EbookModal,
+  ConsultaModal,
+} from "@/components/cta-modals"
+
+type ModalKey = "sanacion" | "metodo" | "ebook" | "consulta"
 
 interface CTALink {
   title: string
   description: string
-  href: string
+  modalKey: ModalKey
   icon: React.ReactNode
   variant: "primary" | "secondary" | "accent" | "outline"
   badge?: string
@@ -22,7 +31,7 @@ const ctaLinks: CTALink[] = [
   {
     title: "Sanaci\u00f3n Grupal a Distancia",
     description: "Conectate a la Videollamada y sana",
-    href: "#sanacion-grupal",
+    modalKey: "sanacion",
     icon: <Heart className="h-5 w-5" />,
     variant: "primary",
     badge: "EN VIVO",
@@ -30,14 +39,14 @@ const ctaLinks: CTALink[] = [
   {
     title: "M\u00e9todo ONE",
     description: "Metodolog\u00eda de sanaci\u00f3n con energ\u00eda",
-    href: "#metodo-one",
+    modalKey: "metodo",
     icon: <GraduationCap className="h-5 w-5" />,
     variant: "accent",
   },
   {
     title: "E-book: El Poder Sanador de la Energ\u00eda",
     description: "Un mundo de posibilidades",
-    href: "#ebook",
+    modalKey: "ebook",
     icon: <BookOpen className="h-5 w-5" />,
     variant: "secondary",
     badge: "NUEVO",
@@ -45,7 +54,7 @@ const ctaLinks: CTALink[] = [
   {
     title: "Consulta 1:1 Personalizada",
     description: "Sesi\u00f3n privada para tus dolores",
-    href: "#consulta",
+    modalKey: "consulta",
     icon: <MessageCircle className="h-5 w-5" />,
     variant: "primary",
   },
@@ -63,28 +72,62 @@ const variantStyles = {
 }
 
 export function CTALinks() {
+  const [openModal, setOpenModal] = useState<ModalKey | null>(null)
+
   return (
-    <div className="flex flex-col gap-3 w-full">
-      {ctaLinks.map((link, index) => (
-        <CTAButton key={link.title} link={link} index={index} />
-      ))}
-    </div>
+    <>
+      <div className="flex flex-col gap-3 w-full">
+        {ctaLinks.map((link, index) => (
+          <CTAButton
+            key={link.title}
+            link={link}
+            index={index}
+            onOpen={() => setOpenModal(link.modalKey)}
+          />
+        ))}
+      </div>
+
+      {/* Modals */}
+      <SanacionGrupalModal
+        open={openModal === "sanacion"}
+        onOpenChange={(v) => !v && setOpenModal(null)}
+      />
+      <MetodoOneModal
+        open={openModal === "metodo"}
+        onOpenChange={(v) => !v && setOpenModal(null)}
+      />
+      <EbookModal
+        open={openModal === "ebook"}
+        onOpenChange={(v) => !v && setOpenModal(null)}
+      />
+      <ConsultaModal
+        open={openModal === "consulta"}
+        onOpenChange={(v) => !v && setOpenModal(null)}
+      />
+    </>
   )
 }
 
-function CTAButton({ link, index }: { link: CTALink; index: number }) {
+function CTAButton({
+  link,
+  index,
+  onOpen,
+}: {
+  link: CTALink
+  index: number
+  onOpen: () => void
+}) {
   const [isHovered, setIsHovered] = useState(false)
 
   return (
-    <a
-      href={link.href}
-      target="_blank"
-      rel="noopener noreferrer"
+    <button
+      type="button"
+      onClick={onOpen}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`
         group relative flex items-center gap-4 rounded-xl border p-4 sm:p-5
-        transition-all duration-300 ease-out animate-fade-up
+        transition-all duration-300 ease-out animate-fade-up text-left cursor-pointer
         hover:scale-[1.02] hover:-translate-y-0.5
         ${variantStyles[link.variant]}
       `}
@@ -134,12 +177,12 @@ function CTAButton({ link, index }: { link: CTALink; index: number }) {
       </div>
 
       {/* Arrow */}
-      <ExternalLink
+      <ChevronRight
         className={`
         h-4 w-4 shrink-0 opacity-40 transition-all duration-300
         group-hover:opacity-100 group-hover:translate-x-0.5
       `}
       />
-    </a>
+    </button>
   )
 }
