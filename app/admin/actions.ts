@@ -4,6 +4,11 @@ import { createClient } from "@/lib/supabase/server"
 import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { revalidatePath } from "next/cache"
 
+function revalidateAll() {
+  revalidatePath("/", "layout")
+  revalidatePath("/admin", "page")
+}
+
 async function requireAdmin() {
   const authed = await isAdminAuthenticated()
   if (!authed) throw new Error("No autorizado")
@@ -15,7 +20,7 @@ export async function updateProfile(id: string, data: Record<string, unknown>) {
   const supabase = await createClient()
   const { error } = await supabase.from("profile").update(data).eq("id", id)
   if (error) throw new Error(error.message)
-  revalidatePath("/")
+  revalidateAll()
   return { success: true }
 }
 
@@ -32,7 +37,7 @@ export async function upsertSocialLink(data: Record<string, unknown>) {
     const { error } = await supabase.from("social_links").insert(data)
     if (error) throw new Error(error.message)
   }
-  revalidatePath("/")
+  revalidateAll()
   return { success: true }
 }
 
@@ -41,7 +46,7 @@ export async function deleteSocialLink(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.from("social_links").delete().eq("id", id)
   if (error) throw new Error(error.message)
-  revalidatePath("/")
+  revalidateAll()
   return { success: true }
 }
 
@@ -58,7 +63,7 @@ export async function upsertCtaLink(data: Record<string, unknown>) {
     const { error } = await supabase.from("cta_links").insert(data)
     if (error) throw new Error(error.message)
   }
-  revalidatePath("/")
+  revalidateAll()
   return { success: true }
 }
 
@@ -67,7 +72,7 @@ export async function deleteCtaLink(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.from("cta_links").delete().eq("id", id)
   if (error) throw new Error(error.message)
-  revalidatePath("/")
+  revalidateAll()
   return { success: true }
 }
 
@@ -84,7 +89,7 @@ export async function upsertModalContent(data: Record<string, unknown>) {
     const { error } = await supabase.from("cta_modal_content").insert(data)
     if (error) throw new Error(error.message)
   }
-  revalidatePath("/")
+  revalidateAll()
   return { success: true }
 }
 
@@ -93,7 +98,7 @@ export async function deleteModalContent(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.from("cta_modal_content").delete().eq("id", id)
   if (error) throw new Error(error.message)
-  revalidatePath("/")
+  revalidateAll()
   return { success: true }
 }
 
@@ -110,7 +115,7 @@ export async function upsertFacilitator(data: Record<string, unknown>) {
     const { error } = await supabase.from("facilitators").insert(data)
     if (error) throw new Error(error.message)
   }
-  revalidatePath("/")
+  revalidateAll()
   return { success: true }
 }
 
@@ -119,7 +124,7 @@ export async function deleteFacilitator(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.from("facilitators").delete().eq("id", id)
   if (error) throw new Error(error.message)
-  revalidatePath("/")
+  revalidateAll()
   return { success: true }
 }
 

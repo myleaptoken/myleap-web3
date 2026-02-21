@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { logoutAdmin } from "@/lib/admin-auth"
 import {
   updateProfile,
@@ -53,11 +52,9 @@ const tabs = [
 /* ─── Main ─── */
 export function AdminPanel({ data }: { data: AdminData }) {
   const [activeTab, setActiveTab] = useState("profile")
-  const router = useRouter()
 
   async function handleLogout() {
     await logoutAdmin()
-    router.push("/")
   }
 
   return (
