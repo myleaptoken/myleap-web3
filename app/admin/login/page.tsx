@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useActionState } from "react"
 import { useRouter } from "next/navigation"
 import { loginAdmin } from "@/lib/admin-auth"
 import { Lock, Eye, EyeOff, LogIn, ArrowLeft } from "lucide-react"
@@ -8,34 +8,15 @@ import { Lock, Eye, EyeOff, LogIn, ArrowLeft } from "lucide-react"
 export default function AdminLoginPage() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-
-    const formData = new FormData(e.currentTarget)
-
-    try {
+  const [state, formAction, isPending] = useActionState(
+    async (_prev: { error: string } | null, formData: FormData) => {
       const result = await loginAdmin(formData)
-      // If loginAdmin succeeds it calls redirect() which throws a NEXT_REDIRECT
-      // If we reach here, credentials were wrong
-      if (result && !result.success) {
-        setError(result.error ?? "Error desconocido")
-      }
-    } catch (err: unknown) {
-      // redirect() throws a special error in Next.js, we need to re-throw it
-      const error = err as { digest?: string }
-      if (error?.digest?.startsWith("NEXT_REDIRECT")) {
-        throw err
-      }
-      setError("Error al iniciar sesion")
-    } finally {
-      setLoading(false)
-    }
-  }
+      // If redirect() worked we never get here
+      return result?.error ? { error: result.error } : { error: "Error desconocido" }
+    },
+    null
+  )
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -51,7 +32,7 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form action={formAction} className="space-y-4">
             <div className="space-y-1.5">
               <label
                 htmlFor="username"
@@ -99,19 +80,19 @@ export default function AdminLoginPage() {
               </div>
             </div>
 
-            {error && (
+            {state?.error && (
               <p className="text-xs text-destructive-foreground font-medium bg-destructive/10 rounded-lg px-3 py-2">
-                {error}
+                {state.error}
               </p>
             )}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             >
               <LogIn className="h-4 w-4" />
-              {loading ? "Ingresando..." : "Ingresar"}
+              {isPending ? "Ingresando..." : "Ingresar"}
             </button>
           </form>
 
