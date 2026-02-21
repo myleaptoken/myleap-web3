@@ -6,7 +6,10 @@ interface SubmitSurveyInput {
   ctaLinkId: string
   name: string
   email: string
-  answers: Record<string, string>
+  phone: string
+  dolor: string
+  experiencia: string
+  expectativa: string
 }
 
 export async function submitSurvey(input: SubmitSurveyInput) {
@@ -16,7 +19,10 @@ export async function submitSurvey(input: SubmitSurveyInput) {
     cta_link_id: input.ctaLinkId,
     respondent_name: input.name,
     respondent_email: input.email,
-    answers: input.answers,
+    respondent_phone: input.phone,
+    dolor: input.dolor,
+    experiencia: input.experiencia,
+    expectativa: input.expectativa,
   })
 
   if (error) {

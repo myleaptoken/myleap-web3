@@ -174,7 +174,10 @@ function SurveyModal({
         ctaLinkId: link.id,
         name: answers.nombre || "",
         email: answers.email || "",
-        answers,
+        phone: answers.celular || "",
+        dolor: answers.dolor || "",
+        experiencia: answers.experiencia || "",
+        expectativa: answers.expectativa || "",
       })
       setStep("success")
     } catch {
