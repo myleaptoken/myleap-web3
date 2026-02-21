@@ -3,28 +3,34 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { loginAdmin } from "@/lib/admin-auth"
-import { Lock, Eye, EyeOff, LogIn } from "lucide-react"
+import { Lock, Eye, EyeOff, LogIn, ArrowLeft } from "lucide-react"
 
 export default function AdminLoginPage() {
   const router = useRouter()
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError("")
+
+    const formData = new FormData(e.currentTarget)
+
     try {
-      const result = await loginAdmin(username, password)
-      if (result.success) {
-        router.push("/admin")
-      } else {
+      const result = await loginAdmin(formData)
+      // If loginAdmin succeeds it calls redirect() which throws a NEXT_REDIRECT
+      // If we reach here, credentials were wrong
+      if (result && !result.success) {
         setError(result.error ?? "Error desconocido")
       }
-    } catch {
+    } catch (err: unknown) {
+      // redirect() throws a special error in Next.js, we need to re-throw it
+      const error = err as { digest?: string }
+      if (error?.digest?.startsWith("NEXT_REDIRECT")) {
+        throw err
+      }
       setError("Error al iniciar sesion")
     } finally {
       setLoading(false)
@@ -45,16 +51,18 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="username" className="text-xs font-semibold text-foreground">
+              <label
+                htmlFor="username"
+                className="text-xs font-semibold text-foreground"
+              >
                 Usuario
               </label>
               <input
                 id="username"
+                name="username"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
                 placeholder="Usuario"
                 required
                 className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
@@ -62,15 +70,17 @@ export default function AdminLoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-xs font-semibold text-foreground">
+              <label
+                htmlFor="password"
+                className="text-xs font-semibold text-foreground"
+              >
                 Contrasena
               </label>
               <div className="relative">
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Contrasena"
                   required
                   className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
@@ -104,6 +114,15 @@ export default function AdminLoginPage() {
               {loading ? "Ingresando..." : "Ingresar"}
             </button>
           </form>
+
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="flex w-full items-center justify-center gap-2 mt-4 rounded-xl border border-border px-6 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-300 hover:text-foreground hover:border-primary/50 hover:bg-secondary/50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al inicio
+          </button>
         </div>
       </div>
     </div>

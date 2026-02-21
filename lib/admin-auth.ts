@@ -1,13 +1,17 @@
 "use server"
 
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 
 const ADMIN_USER = "myleap"
 const ADMIN_PASS = "metodoone"
 const SESSION_COOKIE = "admin_session"
 const SESSION_VALUE = "authenticated_myleap_admin"
 
-export async function loginAdmin(username: string, password: string) {
+export async function loginAdmin(formData: FormData) {
+  const username = formData.get("username") as string
+  const password = formData.get("password") as string
+
   if (username === ADMIN_USER && password === ADMIN_PASS) {
     const cookieStore = await cookies()
     cookieStore.set(SESSION_COOKIE, SESSION_VALUE, {
@@ -17,8 +21,9 @@ export async function loginAdmin(username: string, password: string) {
       maxAge: 60 * 60 * 24, // 24 hours
       path: "/",
     })
-    return { success: true }
+    redirect("/admin")
   }
+
   return { success: false, error: "Credenciales incorrectas" }
 }
 
