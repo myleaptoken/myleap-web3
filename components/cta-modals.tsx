@@ -128,10 +128,8 @@ export function RegistrateYSanaModal({
             <div className="space-y-5">
               {/* Intro */}
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Vivi en persona una experiencia de sanacion energetica totalmente gratuita.
-                Nuestros facilitadores certificados del Metodo ONE realizan sesiones
-                abiertas en espacios publicos para que puedas sentir la energia y
-                experimentar sus beneficios sin compromiso.
+                Bienvenido a la comunidad My Leap, preparate para vivir la experiencia
+                gratuita del M&#233;todo ONE.
               </p>
 
               {/* Details */}
@@ -179,8 +177,8 @@ export function RegistrateYSanaModal({
                   {[
                     "Sesion individual de sanacion energetica de 15-20 minutos",
                     "Facilitador certificado en el Metodo ONE",
-                    "Breve diagnostico energetico de tu estado actual",
-                    "Recomendaciones personalizadas post-sesion",
+                    "Evaluacion breve de tus dolencias",
+                    "Acceso a beneficios de la comunidad",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-2">
                       <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />

@@ -30,7 +30,7 @@ interface CTALink {
 
 const ctaLinks: CTALink[] = [
   {
-    title: "Registrate y Sana",
+    title: "Experiencia M\u00e9todo ONE",
     description: "Completa la encuesta y disfruta la sanaci\u00f3n",
     modalKey: "registrate",
     icon: <Sparkles className="h-5 w-5" />,
