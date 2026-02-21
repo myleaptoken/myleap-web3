@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { revalidatePath } from "next/cache"
 
@@ -17,7 +17,7 @@ async function requireAdmin() {
 // ─── Profile ───
 export async function updateProfile(id: string, data: Record<string, unknown>) {
   await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("profile").update(data).eq("id", id)
   if (error) throw new Error(error.message)
   revalidateAll()
@@ -27,7 +27,7 @@ export async function updateProfile(id: string, data: Record<string, unknown>) {
 // ─── Social Links ───
 export async function upsertSocialLink(data: Record<string, unknown>) {
   await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   if (data.id) {
     const id = data.id
     delete data.id
@@ -43,7 +43,7 @@ export async function upsertSocialLink(data: Record<string, unknown>) {
 
 export async function deleteSocialLink(id: string) {
   await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("social_links").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidateAll()
@@ -53,7 +53,7 @@ export async function deleteSocialLink(id: string) {
 // ─── CTA Links ───
 export async function upsertCtaLink(data: Record<string, unknown>) {
   await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   if (data.id) {
     const id = data.id
     delete data.id
@@ -69,7 +69,7 @@ export async function upsertCtaLink(data: Record<string, unknown>) {
 
 export async function deleteCtaLink(id: string) {
   await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("cta_links").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidateAll()
@@ -79,7 +79,7 @@ export async function deleteCtaLink(id: string) {
 // ─── CTA Modal Content ───
 export async function upsertModalContent(data: Record<string, unknown>) {
   await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   if (data.id) {
     const id = data.id
     delete data.id
@@ -95,7 +95,7 @@ export async function upsertModalContent(data: Record<string, unknown>) {
 
 export async function deleteModalContent(id: string) {
   await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("cta_modal_content").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidateAll()
@@ -105,7 +105,7 @@ export async function deleteModalContent(id: string) {
 // ─── Facilitators ───
 export async function upsertFacilitator(data: Record<string, unknown>) {
   await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   if (data.id) {
     const id = data.id
     delete data.id
@@ -121,7 +121,7 @@ export async function upsertFacilitator(data: Record<string, unknown>) {
 
 export async function deleteFacilitator(id: string) {
   await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("facilitators").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidateAll()
@@ -131,7 +131,7 @@ export async function deleteFacilitator(id: string) {
 // ─── Fetch all admin data ───
 export async function getAdminData() {
   await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes] =
     await Promise.all([
