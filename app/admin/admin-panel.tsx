@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { logoutAdmin } from "@/lib/admin-auth"
 import {
   updateProfile,
