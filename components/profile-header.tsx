@@ -1,4 +1,5 @@
 import type { Profile } from "@/lib/types"
+import { AdminAvatarTrigger } from "@/components/admin-avatar-trigger"
 
 export function ProfileHeader({ profile }: { profile: Profile }) {
   return (
@@ -17,16 +18,7 @@ export function ProfileHeader({ profile }: { profile: Profile }) {
       {/* Avatar */}
       <div className="relative -mt-16 sm:-mt-20 flex flex-col items-center px-4">
         <div className="relative animate-scale-in">
-          <div className="h-24 w-24 sm:h-32 sm:w-32 dark:h-28 dark:w-28 dark:sm:h-32 dark:sm:w-32 rounded-full border-4 border-transparent bg-[#0d1a2d] overflow-hidden animate-pulse-glow">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/avatar.png"
-              alt={`${profile.name} Logo`}
-              width={128}
-              height={128}
-              className="h-full w-full object-cover"
-            />
-          </div>
+          <AdminAvatarTrigger profileName={profile.name} />
         </div>
 
         {/* Name & Bio */}
