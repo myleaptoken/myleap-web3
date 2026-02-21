@@ -56,9 +56,8 @@ export interface Facilitator {
   name: string
   specialty: string | null
   avatar_url: string | null
-  rating: number
-  sessions_count: string
   whatsapp_url: string | null
+  booking_url: string | null
   bio: string | null
   display_order: number
   is_active: boolean
