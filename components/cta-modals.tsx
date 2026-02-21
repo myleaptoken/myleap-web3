@@ -196,7 +196,7 @@ export function RegistrateYSanaModal({
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-95"
               >
                 <ClipboardCheck className="h-4 w-4" />
-                Completar Encuesta para Acceder
+                Completar Encuesta para Sanar
               </button>
             </DialogFooter>
           </>
