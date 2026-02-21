@@ -1,0 +1,882 @@
+"use client"
+
+import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { logoutAdmin } from "@/lib/admin-auth"
+import {
+  updateProfile,
+  upsertSocialLink,
+  deleteSocialLink,
+  upsertCtaLink,
+  deleteCtaLink,
+  upsertModalContent,
+  deleteModalContent,
+  upsertFacilitator,
+  deleteFacilitator,
+} from "./actions"
+import {
+  User,
+  Link2,
+  Layers,
+  FileText,
+  Users,
+  ClipboardList,
+  LogOut,
+  Save,
+  Plus,
+  Trash2,
+  Pencil,
+  X,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react"
+
+/* ─── Types ─── */
+interface AdminData {
+  profile: Record<string, unknown> | null
+  socialLinks: Record<string, unknown>[]
+  ctaLinks: Record<string, unknown>[]
+  modalContents: Record<string, unknown>[]
+  facilitators: Record<string, unknown>[]
+  surveys: Record<string, unknown>[]
+}
+
+const tabs = [
+  { key: "profile", label: "Perfil", icon: User },
+  { key: "socials", label: "Redes", icon: Link2 },
+  { key: "cta", label: "Enlaces CTA", icon: Layers },
+  { key: "modals", label: "Modales", icon: FileText },
+  { key: "facilitators", label: "Terapeutas", icon: Users },
+  { key: "surveys", label: "Encuestas", icon: ClipboardList },
+]
+
+/* ─── Main ─── */
+export function AdminPanel({ data }: { data: AdminData }) {
+  const [activeTab, setActiveTab] = useState("profile")
+  const router = useRouter()
+
+  async function handleLogout() {
+    await logoutAdmin()
+    router.push("/")
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+          <h1 className="text-lg font-bold text-foreground">
+            Admin <span className="text-primary">My Leap</span>
+          </h1>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Salir
+          </button>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-5xl px-4 py-6">
+        {/* Tabs */}
+        <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl border border-border bg-secondary/50 p-1">
+          {tabs.map((tab) => {
+            const Icon = tab.icon
+            const isActive = activeTab === tab.key
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium whitespace-nowrap transition-all ${
+                  isActive
+                    ? "bg-card text-foreground shadow-sm border border-border"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Tab Content */}
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+          {activeTab === "profile" && <ProfileTab profile={data.profile} />}
+          {activeTab === "socials" && (
+            <SocialsTab links={data.socialLinks} profileId={data.profile?.id as string} />
+          )}
+          {activeTab === "cta" && (
+            <CTATab links={data.ctaLinks} profileId={data.profile?.id as string} />
+          )}
+          {activeTab === "modals" && (
+            <ModalsTab modals={data.modalContents} ctaLinks={data.ctaLinks} />
+          )}
+          {activeTab === "facilitators" && (
+            <FacilitatorsTab facilitators={data.facilitators} />
+          )}
+          {activeTab === "surveys" && <SurveysTab surveys={data.surveys} />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Shared Components ─── */
+function FieldInput({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  textarea,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  type?: string
+  placeholder?: string
+  textarea?: boolean
+}) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs font-semibold text-foreground">{label}</label>
+      {textarea ? (
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          rows={3}
+          className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors resize-none"
+        />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+        />
+      )}
+    </div>
+  )
+}
+
+function ToggleField({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <label className="flex items-center gap-2 cursor-pointer">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${
+          checked ? "bg-primary" : "bg-border"
+        }`}
+      >
+        <span
+          className={`inline-block h-4 w-4 rounded-full bg-card shadow-sm transition-transform mt-0.5 ${
+            checked ? "translate-x-4.5 ml-0" : "translate-x-0.5"
+          }`}
+        />
+      </button>
+      <span className="text-xs text-foreground">{label}</span>
+    </label>
+  )
+}
+
+function ActionButton({
+  onClick,
+  loading,
+  label,
+  icon: Icon,
+  variant = "primary",
+}: {
+  onClick: () => void
+  loading: boolean
+  label: string
+  icon: React.ElementType
+  variant?: "primary" | "danger" | "secondary"
+}) {
+  const styles = {
+    primary:
+      "bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/30",
+    danger:
+      "bg-destructive/10 text-destructive-foreground hover:bg-destructive/20",
+    secondary:
+      "border border-border text-foreground hover:bg-secondary",
+  }
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 ${styles[variant]}`}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {loading ? "Guardando..." : label}
+    </button>
+  )
+}
+
+function SectionHeader({
+  title,
+  onAdd,
+}: {
+  title: string
+  onAdd?: () => void
+}) {
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="text-base font-bold text-foreground">{title}</h2>
+      {onAdd && (
+        <button
+          onClick={onAdd}
+          className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Agregar
+        </button>
+      )}
+    </div>
+  )
+}
+
+/* ─── Profile Tab ─── */
+function ProfileTab({
+  profile,
+}: {
+  profile: Record<string, unknown> | null
+}) {
+  const [form, setForm] = useState({
+    name: (profile?.name as string) ?? "",
+    subtitle: (profile?.subtitle as string) ?? "",
+    bio: (profile?.bio as string) ?? "",
+    avatar_url: (profile?.avatar_url as string) ?? "",
+    banner_url: (profile?.banner_url as string) ?? "",
+    stat_leapers: (profile?.stat_leapers as string) ?? "",
+    stat_cursos: (profile?.stat_cursos as string) ?? "",
+    stat_estudiantes: (profile?.stat_estudiantes as string) ?? "",
+  })
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  function save() {
+    startTransition(async () => {
+      await updateProfile(profile?.id as string, form)
+      router.refresh()
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader title="Informacion del Perfil" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FieldInput label="Nombre" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+        <FieldInput label="Subtitulo" value={form.subtitle} onChange={(v) => setForm({ ...form, subtitle: v })} />
+        <FieldInput label="Avatar URL" value={form.avatar_url} onChange={(v) => setForm({ ...form, avatar_url: v })} />
+        <FieldInput label="Banner URL" value={form.banner_url} onChange={(v) => setForm({ ...form, banner_url: v })} />
+        <FieldInput label="Stat Leapers" value={form.stat_leapers} onChange={(v) => setForm({ ...form, stat_leapers: v })} />
+        <FieldInput label="Stat Cursos" value={form.stat_cursos} onChange={(v) => setForm({ ...form, stat_cursos: v })} />
+        <FieldInput label="Stat Estudiantes" value={form.stat_estudiantes} onChange={(v) => setForm({ ...form, stat_estudiantes: v })} />
+      </div>
+      <FieldInput label="Bio" value={form.bio} onChange={(v) => setForm({ ...form, bio: v })} textarea />
+      <ActionButton onClick={save} loading={isPending} label="Guardar Perfil" icon={Save} />
+    </div>
+  )
+}
+
+/* ─── Socials Tab ─── */
+function SocialsTab({
+  links,
+  profileId,
+}: {
+  links: Record<string, unknown>[]
+  profileId: string
+}) {
+  const [items, setItems] = useState(links)
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  function openNew() {
+    setEditing({ platform: "", url: "", display_order: items.length, is_active: true, profile_id: profileId })
+  }
+
+  function save() {
+    if (!editing) return
+    startTransition(async () => {
+      await upsertSocialLink({ ...editing, profile_id: profileId })
+      setEditing(null)
+      router.refresh()
+    })
+  }
+
+  function remove(id: string) {
+    startTransition(async () => {
+      await deleteSocialLink(id)
+      setItems(items.filter((i) => i.id !== id))
+      router.refresh()
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader title="Redes Sociales" onAdd={openNew} />
+
+      {/* List */}
+      <div className="space-y-2">
+        {items.map((link) => (
+          <div
+            key={link.id as string}
+            className="flex items-center gap-3 rounded-lg border border-border p-3"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground capitalize">
+                {link.platform as string}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {link.url as string}
+              </p>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${link.is_active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+              {link.is_active ? "Activo" : "Inactivo"}
+            </span>
+            <button
+              onClick={() => setEditing({ ...link })}
+              className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => remove(link.id as string)}
+              className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive-foreground"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Edit Form */}
+      {editing && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">
+              {editing.id ? "Editar Red Social" : "Nueva Red Social"}
+            </h3>
+            <button onClick={() => setEditing(null)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FieldInput
+              label="Plataforma"
+              value={(editing.platform as string) ?? ""}
+              onChange={(v) => setEditing({ ...editing, platform: v })}
+              placeholder="instagram, tiktok, youtube..."
+            />
+            <FieldInput
+              label="URL"
+              value={(editing.url as string) ?? ""}
+              onChange={(v) => setEditing({ ...editing, url: v })}
+              placeholder="https://..."
+            />
+            <FieldInput
+              label="Orden"
+              value={String(editing.display_order ?? 0)}
+              onChange={(v) => setEditing({ ...editing, display_order: parseInt(v) || 0 })}
+              type="number"
+            />
+            <ToggleField
+              label="Activo"
+              checked={(editing.is_active as boolean) ?? true}
+              onChange={(v) => setEditing({ ...editing, is_active: v })}
+            />
+          </div>
+          <ActionButton onClick={save} loading={isPending} label="Guardar" icon={Save} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── CTA Links Tab ─── */
+function CTATab({
+  links,
+  profileId,
+}: {
+  links: Record<string, unknown>[]
+  profileId: string
+}) {
+  const [items] = useState(links)
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  function openNew() {
+    setEditing({
+      title: "",
+      description: "",
+      icon_name: "Heart",
+      variant: "primary",
+      badge: "",
+      modal_key: "",
+      display_order: items.length,
+      is_active: true,
+      is_featured: false,
+      featured_image: "",
+      featured_tag: "",
+      featured_stat_1_label: "",
+      featured_stat_2_label: "",
+      profile_id: profileId,
+    })
+  }
+
+  function save() {
+    if (!editing) return
+    startTransition(async () => {
+      const data = { ...editing, profile_id: profileId }
+      // Clean empty strings to null
+      for (const k of ["badge", "featured_image", "featured_tag", "featured_stat_1_label", "featured_stat_2_label"]) {
+        if (data[k] === "") data[k] = null
+      }
+      await upsertCtaLink(data)
+      setEditing(null)
+      router.refresh()
+    })
+  }
+
+  function remove(id: string) {
+    startTransition(async () => {
+      await deleteCtaLink(id)
+      router.refresh()
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader title="Enlaces CTA" onAdd={openNew} />
+
+      <div className="space-y-2">
+        {items.map((link) => (
+          <div
+            key={link.id as string}
+            className="flex items-center gap-3 rounded-lg border border-border p-3"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-foreground">
+                  {link.title as string}
+                </p>
+                {link.badge && (
+                  <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                    {link.badge as string}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {link.modal_key as string} | {link.variant as string}
+              </p>
+            </div>
+            <div className="flex items-center gap-1">
+              {link.is_featured && (
+                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">
+                  Destacado
+                </span>
+              )}
+              <span className={`text-xs px-2 py-0.5 rounded-full ${link.is_active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                {link.is_active ? "Activo" : "Inactivo"}
+              </span>
+            </div>
+            <button
+              onClick={() => setEditing({ ...link })}
+              className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => remove(link.id as string)}
+              className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive-foreground"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {editing && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">
+              {editing.id ? "Editar Enlace CTA" : "Nuevo Enlace CTA"}
+            </h3>
+            <button onClick={() => setEditing(null)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FieldInput label="Titulo" value={(editing.title as string) ?? ""} onChange={(v) => setEditing({ ...editing, title: v })} />
+            <FieldInput label="Descripcion" value={(editing.description as string) ?? ""} onChange={(v) => setEditing({ ...editing, description: v })} />
+            <FieldInput label="Icono (Lucide)" value={(editing.icon_name as string) ?? ""} onChange={(v) => setEditing({ ...editing, icon_name: v })} placeholder="Heart, Sparkles, BookOpen..." />
+            <FieldInput label="Variante" value={(editing.variant as string) ?? ""} onChange={(v) => setEditing({ ...editing, variant: v })} placeholder="primary, accent, secondary" />
+            <FieldInput label="Badge" value={(editing.badge as string) ?? ""} onChange={(v) => setEditing({ ...editing, badge: v })} placeholder="EN VIVO, NUEVO, GRATIS" />
+            <FieldInput label="Modal Key" value={(editing.modal_key as string) ?? ""} onChange={(v) => setEditing({ ...editing, modal_key: v })} placeholder="sanacion, metodo, ebook..." />
+            <FieldInput label="Orden" value={String(editing.display_order ?? 0)} onChange={(v) => setEditing({ ...editing, display_order: parseInt(v) || 0 })} type="number" />
+          </div>
+          <div className="flex flex-wrap gap-4">
+            <ToggleField label="Activo" checked={(editing.is_active as boolean) ?? true} onChange={(v) => setEditing({ ...editing, is_active: v })} />
+            <ToggleField label="Destacado" checked={(editing.is_featured as boolean) ?? false} onChange={(v) => setEditing({ ...editing, is_featured: v })} />
+          </div>
+          {editing.is_featured && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-border">
+              <FieldInput label="Imagen destacada URL" value={(editing.featured_image as string) ?? ""} onChange={(v) => setEditing({ ...editing, featured_image: v })} />
+              <FieldInput label="Tag destacado" value={(editing.featured_tag as string) ?? ""} onChange={(v) => setEditing({ ...editing, featured_tag: v })} placeholder="Curso, En Vivo..." />
+              <FieldInput label="Stat 1" value={(editing.featured_stat_1_label as string) ?? ""} onChange={(v) => setEditing({ ...editing, featured_stat_1_label: v })} />
+              <FieldInput label="Stat 2" value={(editing.featured_stat_2_label as string) ?? ""} onChange={(v) => setEditing({ ...editing, featured_stat_2_label: v })} />
+            </div>
+          )}
+          <ActionButton onClick={save} loading={isPending} label="Guardar" icon={Save} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── Modals Tab ─── */
+function ModalsTab({
+  modals,
+  ctaLinks,
+}: {
+  modals: Record<string, unknown>[]
+  ctaLinks: Record<string, unknown>[]
+}) {
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
+  const [jsonStr, setJsonStr] = useState("")
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  function openEdit(modal: Record<string, unknown>) {
+    setEditing({ ...modal })
+    setJsonStr(JSON.stringify(modal.extra_data ?? {}, null, 2))
+  }
+
+  function openNew() {
+    setEditing({
+      cta_link_id: "",
+      modal_title: "",
+      modal_subtitle: "",
+      modal_body: "",
+      modal_type: "info",
+      extra_data: {},
+      cta_button_text: "",
+      cta_button_url: "",
+    })
+    setJsonStr("{}")
+  }
+
+  function save() {
+    if (!editing) return
+    let parsedExtra = {}
+    try {
+      parsedExtra = JSON.parse(jsonStr)
+    } catch {
+      alert("JSON invalido en extra_data")
+      return
+    }
+    startTransition(async () => {
+      const data = { ...editing, extra_data: parsedExtra }
+      for (const k of ["cta_button_text", "cta_button_url", "modal_subtitle", "modal_body"]) {
+        if (data[k] === "") data[k] = null
+      }
+      await upsertModalContent(data)
+      setEditing(null)
+      router.refresh()
+    })
+  }
+
+  function remove(id: string) {
+    startTransition(async () => {
+      await deleteModalContent(id)
+      router.refresh()
+    })
+  }
+
+  function getCtaTitle(ctaLinkId: string) {
+    const cta = ctaLinks.find((c) => c.id === ctaLinkId)
+    return (cta?.title as string) ?? ctaLinkId
+  }
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader title="Contenido de Modales" onAdd={openNew} />
+
+      <div className="space-y-2">
+        {modals.map((modal) => (
+          <div
+            key={modal.id as string}
+            className="flex items-center gap-3 rounded-lg border border-border p-3"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {modal.modal_title as string}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Tipo: {modal.modal_type as string} | CTA: {getCtaTitle(modal.cta_link_id as string)}
+              </p>
+            </div>
+            <button
+              onClick={() => openEdit(modal)}
+              className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => remove(modal.id as string)}
+              className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive-foreground"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {editing && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">
+              {editing.id ? "Editar Modal" : "Nuevo Modal"}
+            </h3>
+            <button onClick={() => setEditing(null)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-foreground">CTA Link asociado</label>
+              <select
+                value={(editing.cta_link_id as string) ?? ""}
+                onChange={(e) => setEditing({ ...editing, cta_link_id: e.target.value })}
+                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              >
+                <option value="">Seleccionar...</option>
+                {ctaLinks.map((cta) => (
+                  <option key={cta.id as string} value={cta.id as string}>
+                    {cta.title as string}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <FieldInput label="Tipo de Modal" value={(editing.modal_type as string) ?? ""} onChange={(v) => setEditing({ ...editing, modal_type: v })} placeholder="info, zoom, video, ebook, survey, facilitators" />
+            <FieldInput label="Titulo" value={(editing.modal_title as string) ?? ""} onChange={(v) => setEditing({ ...editing, modal_title: v })} />
+            <FieldInput label="Subtitulo" value={(editing.modal_subtitle as string) ?? ""} onChange={(v) => setEditing({ ...editing, modal_subtitle: v })} />
+            <FieldInput label="Texto boton CTA" value={(editing.cta_button_text as string) ?? ""} onChange={(v) => setEditing({ ...editing, cta_button_text: v })} />
+            <FieldInput label="URL boton CTA" value={(editing.cta_button_url as string) ?? ""} onChange={(v) => setEditing({ ...editing, cta_button_url: v })} />
+          </div>
+          <FieldInput label="Cuerpo del Modal" value={(editing.modal_body as string) ?? ""} onChange={(v) => setEditing({ ...editing, modal_body: v })} textarea />
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-foreground">Extra Data (JSON)</label>
+            <textarea
+              value={jsonStr}
+              onChange={(e) => setJsonStr(e.target.value)}
+              rows={8}
+              className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-xs text-foreground font-mono placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors resize-none"
+            />
+          </div>
+          <ActionButton onClick={save} loading={isPending} label="Guardar" icon={Save} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── Facilitators Tab ─── */
+function FacilitatorsTab({
+  facilitators,
+}: {
+  facilitators: Record<string, unknown>[]
+}) {
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  function openNew() {
+    setEditing({
+      name: "",
+      specialty: "",
+      avatar_url: "",
+      whatsapp_url: "",
+      booking_url: "",
+      bio: "",
+      display_order: facilitators.length,
+      is_active: true,
+    })
+  }
+
+  function save() {
+    if (!editing) return
+    startTransition(async () => {
+      const data = { ...editing }
+      for (const k of ["specialty", "avatar_url", "whatsapp_url", "booking_url", "bio"]) {
+        if (data[k] === "") data[k] = null
+      }
+      await upsertFacilitator(data)
+      setEditing(null)
+      router.refresh()
+    })
+  }
+
+  function remove(id: string) {
+    startTransition(async () => {
+      await deleteFacilitator(id)
+      router.refresh()
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader title="Facilitadores / Terapeutas" onAdd={openNew} />
+
+      <div className="space-y-2">
+        {facilitators.map((f) => (
+          <div
+            key={f.id as string}
+            className="flex items-center gap-3 rounded-lg border border-border p-3"
+          >
+            {f.avatar_url && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={f.avatar_url as string}
+                alt={f.name as string}
+                className="h-10 w-10 rounded-full object-cover border border-border shrink-0"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {f.name as string}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {f.specialty as string}
+              </p>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${f.is_active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+              {f.is_active ? "Activo" : "Inactivo"}
+            </span>
+            <button
+              onClick={() => setEditing({ ...f })}
+              className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => remove(f.id as string)}
+              className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive-foreground"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {editing && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">
+              {editing.id ? "Editar Facilitador" : "Nuevo Facilitador"}
+            </h3>
+            <button onClick={() => setEditing(null)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FieldInput label="Nombre" value={(editing.name as string) ?? ""} onChange={(v) => setEditing({ ...editing, name: v })} />
+            <FieldInput label="Especialidad" value={(editing.specialty as string) ?? ""} onChange={(v) => setEditing({ ...editing, specialty: v })} />
+            <FieldInput label="Avatar URL" value={(editing.avatar_url as string) ?? ""} onChange={(v) => setEditing({ ...editing, avatar_url: v })} />
+            <FieldInput label="WhatsApp URL" value={(editing.whatsapp_url as string) ?? ""} onChange={(v) => setEditing({ ...editing, whatsapp_url: v })} />
+            <FieldInput label="Booking URL" value={(editing.booking_url as string) ?? ""} onChange={(v) => setEditing({ ...editing, booking_url: v })} />
+            <FieldInput label="Orden" value={String(editing.display_order ?? 0)} onChange={(v) => setEditing({ ...editing, display_order: parseInt(v) || 0 })} type="number" />
+          </div>
+          <FieldInput label="Bio" value={(editing.bio as string) ?? ""} onChange={(v) => setEditing({ ...editing, bio: v })} textarea />
+          <ToggleField label="Activo" checked={(editing.is_active as boolean) ?? true} onChange={(v) => setEditing({ ...editing, is_active: v })} />
+          <ActionButton onClick={save} loading={isPending} label="Guardar" icon={Save} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── Surveys Tab ─── */
+function SurveysTab({ surveys }: { surveys: Record<string, unknown>[] }) {
+  const [expanded, setExpanded] = useState<string | null>(null)
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader title="Respuestas de Encuestas" />
+      {surveys.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-8">
+          Aun no hay respuestas de encuestas.
+        </p>
+      )}
+      <div className="space-y-2">
+        {surveys.map((s) => {
+          const isOpen = expanded === (s.id as string)
+          return (
+            <div
+              key={s.id as string}
+              className="rounded-lg border border-border overflow-hidden"
+            >
+              <button
+                onClick={() => setExpanded(isOpen ? null : (s.id as string))}
+                className="flex w-full items-center gap-3 p-3 text-left hover:bg-secondary/50 transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground">
+                    {s.respondent_name as string}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {s.respondent_email as string}
+                    {s.respondent_phone ? ` | ${s.respondent_phone as string}` : ""}
+                  </p>
+                </div>
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {new Date(s.created_at as string).toLocaleDateString("es-AR")}
+                </span>
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                )}
+              </button>
+              {isOpen && (
+                <div className="border-t border-border p-3 bg-secondary/30 space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase">Dolor / Malestar</p>
+                      <p className="text-xs text-foreground">{(s.dolor as string) || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase">Experiencia previa</p>
+                      <p className="text-xs text-foreground">{(s.experiencia as string) || "-"}</p>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase">Expectativa</p>
+                      <p className="text-xs text-foreground">{(s.expectativa as string) || "-"}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
