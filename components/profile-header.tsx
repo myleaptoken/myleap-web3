@@ -1,6 +1,6 @@
-"use client"
+import type { Profile } from "@/lib/types"
 
-export function ProfileHeader() {
+export function ProfileHeader({ profile }: { profile: Profile }) {
   return (
     <div className="relative w-full">
       {/* Banner */}
@@ -8,7 +8,7 @@ export function ProfileHeader() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/banner.png"
-          alt="Banner de perfil MyLeap"
+          alt={`Banner de perfil ${profile.name}`}
           className="absolute inset-0 h-full w-full object-cover object-[center_30%]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
@@ -21,38 +21,44 @@ export function ProfileHeader() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/avatar.png"
-              alt="MyLeap Logo"
+              alt={`${profile.name} Logo`}
               width={128}
               height={128}
               className="h-full w-full object-cover"
             />
           </div>
-
         </div>
 
         {/* Name & Bio */}
         <div className="mt-4 flex flex-col items-center text-center animate-fade-up">
           <h1 className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-balance title-shimmer-text">
-            MY LEAP
+            {profile.name.toUpperCase()}
           </h1>
-          <p className="mt-1 text-sm sm:text-base text-primary font-medium flex items-center gap-1.5">
-            <span className="font-normal">Potenciado Por</span>
-            <span className="text-base sm:text-lg font-bold tracking-wide subtitle-shimmer-text">
-              {'Método ONE'}
-            </span>
-          </p>
-          <p className="mt-3 max-w-md text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty">
-            Tu salto a la sanación. Cursos, facilitadores, eventos y una comunidad para impulsar tu energía vital.
-          </p>
+          {profile.subtitle && (
+            <p className="mt-1 text-sm sm:text-base text-primary font-medium flex items-center gap-1.5">
+              <span className="font-normal">Potenciado Por</span>
+              <span className="text-base sm:text-lg font-bold tracking-wide subtitle-shimmer-text">
+                {'Método ONE'}
+              </span>
+            </p>
+          )}
+          {profile.bio && (
+            <p className="mt-3 max-w-md text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty">
+              {profile.bio}
+            </p>
+          )}
         </div>
 
         {/* Stats */}
-        <div className="mt-6 flex items-center gap-6 sm:gap-10 animate-fade-up" style={{ animationDelay: "0.15s" }}>
-          <StatItem value="1K+" label="Leapers" />
+        <div
+          className="mt-6 flex items-center gap-6 sm:gap-10 animate-fade-up"
+          style={{ animationDelay: "0.15s" }}
+        >
+          <StatItem value={profile.stat_leapers} label="Leapers" />
           <div className="h-8 w-px bg-border" />
-          <StatItem value="200+" label="Cursos Imp." />
+          <StatItem value={profile.stat_cursos} label="Cursos Imp." />
           <div className="h-8 w-px bg-border" />
-          <StatItem value="500+" label="Estudiantes" />
+          <StatItem value={profile.stat_estudiantes} label="Estudiantes" />
         </div>
       </div>
     </div>
@@ -62,7 +68,9 @@ export function ProfileHeader() {
 function StatItem({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex flex-col items-center">
-      <span className="text-lg sm:text-xl font-bold text-foreground font-mono">{value}</span>
+      <span className="text-lg sm:text-xl font-bold text-foreground font-mono">
+        {value}
+      </span>
       <span className="text-xs text-muted-foreground">{label}</span>
     </div>
   )
