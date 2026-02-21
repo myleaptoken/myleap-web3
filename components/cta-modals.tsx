@@ -870,8 +870,6 @@ function FacilitatorsModal({
 }
 
 function FacilitatorCard({ facilitator }: { facilitator: Facilitator }) {
-  const [expanded, setExpanded] = useState(false)
-
   return (
     <div className="rounded-xl border border-border bg-card p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-md">
       <div className="flex items-start gap-3">
@@ -888,33 +886,13 @@ function FacilitatorCard({ facilitator }: { facilitator: Facilitator }) {
           <p className="text-xs text-muted-foreground">
             {facilitator.specialty}
           </p>
-          <div className="flex items-center gap-3 mt-1">
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 text-primary fill-primary" />
-              <span className="text-xs font-medium text-foreground">
-                {facilitator.rating}
-              </span>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {facilitator.sessions_count} sesiones
-            </span>
-          </div>
         </div>
       </div>
 
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="mt-2 text-xs text-primary font-medium hover:underline"
-      >
-        {expanded ? "Ver menos" : "Ver perfil completo"}
-      </button>
-
-      {expanded && facilitator.bio && (
-        <div className="mt-3 space-y-3 animate-fade-up">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {facilitator.bio}
-          </p>
-        </div>
+      {facilitator.bio && (
+        <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
+          {facilitator.bio}
+        </p>
       )}
 
       <div className="mt-3 flex gap-2">
@@ -935,15 +913,17 @@ function FacilitatorCard({ facilitator }: { facilitator: Facilitator }) {
             WhatsApp
           </a>
         )}
-        <a
-          href={facilitator.whatsapp_url ?? "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary transition-all duration-300 hover:bg-primary/20 hover:scale-[1.02] active:scale-95"
-        >
-          <Calendar className="h-3.5 w-3.5" />
-          Agendar Sesion
-        </a>
+        {facilitator.booking_url && (
+          <a
+            href={facilitator.booking_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary transition-all duration-300 hover:bg-primary/20 hover:scale-[1.02] active:scale-95"
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            Agendar Sesion
+          </a>
+        )}
       </div>
     </div>
   )
