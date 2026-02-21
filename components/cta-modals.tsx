@@ -390,12 +390,7 @@ function SurveyModal({
                   {answers.nombre
                     ? `, ${answers.nombre.split(" ")[0]}`
                     : ""}
-                  ! Tu sesion gratuita de sanacion energetica ha sido reservada.
-                  Te contactaremos a{" "}
-                  <span className="font-medium text-foreground">
-                    {answers.email || "tu email"}
-                  </span>{" "}
-                  con los detalles del lugar, dia y horario.
+                  !! por abrirte a la sanacion
                 </p>
               </div>
 
@@ -405,10 +400,9 @@ function SurveyModal({
                 </h4>
                 <ul className="space-y-1.5 text-left">
                   {[
-                    "Revisa tu email para la confirmacion",
-                    "Llega 5 minutos antes a la sesion",
-                    "Usa ropa comoda",
-                    "Trae buena energia y mente abierta",
+                    "Acercate al terapeuta",
+                    "Comenta detalladamente tus dolencias",
+                    "Vive la sanacion con tu corazon abierto",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-2">
                       <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
