@@ -13,6 +13,8 @@ import {
   deleteModalContent,
   upsertFacilitator,
   deleteFacilitator,
+  upsertTestimonial,
+  deleteTestimonial,
 } from "./actions"
 import {
   User,
@@ -29,6 +31,8 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  Video,
+  UserCheck,
 } from "lucide-react"
 
 /* ─── Types ─── */
@@ -39,6 +43,8 @@ interface AdminData {
   modalContents: Record<string, unknown>[]
   facilitators: Record<string, unknown>[]
   surveys: Record<string, unknown>[]
+  testimonials: Record<string, unknown>[]
+  preUsers: Record<string, unknown>[]
 }
 
 const tabs = [
@@ -47,7 +53,9 @@ const tabs = [
   { key: "cta", label: "Enlaces CTA", icon: Layers },
   { key: "modals", label: "Modales", icon: FileText },
   { key: "facilitators", label: "Terapeutas", icon: Users },
+  { key: "testimonials", label: "Testimonios", icon: Video },
   { key: "surveys", label: "Encuestas", icon: ClipboardList },
+  { key: "preusers", label: "Pre-Usuarios", icon: UserCheck },
 ]
 
 /* ─── Main ─── */
@@ -114,7 +122,11 @@ export function AdminPanel({ data }: { data: AdminData }) {
           {activeTab === "facilitators" && (
             <FacilitatorsTab facilitators={data.facilitators} />
           )}
+          {activeTab === "testimonials" && (
+            <TestimonialsTab testimonials={data.testimonials} />
+          )}
           {activeTab === "surveys" && <SurveysTab surveys={data.surveys} />}
+          {activeTab === "preusers" && <PreUsersTab preUsers={data.preUsers} />}
         </div>
       </div>
     </div>
@@ -811,6 +823,121 @@ function FacilitatorsTab({
   )
 }
 
+/* ─── Testimonials Tab ─── */
+function TestimonialsTab({
+  testimonials,
+}: {
+  testimonials: Record<string, unknown>[]
+}) {
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  function openNew() {
+    setEditing({
+      name: "",
+      subtitle: "",
+      thumbnail_url: "",
+      video_url: "",
+      display_order: testimonials.length,
+      is_active: true,
+    })
+  }
+
+  function save() {
+    if (!editing) return
+    startTransition(async () => {
+      const data = { ...editing }
+      for (const k of ["subtitle", "thumbnail_url"]) {
+        if (data[k] === "") data[k] = null
+      }
+      await upsertTestimonial(data)
+      setEditing(null)
+      router.refresh()
+    })
+  }
+
+  function remove(id: string) {
+    startTransition(async () => {
+      await deleteTestimonial(id)
+      router.refresh()
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader title="Video Testimonios" onAdd={openNew} />
+
+      <p className="text-xs text-muted-foreground">
+        Sube los videos al bucket &quot;testimonials&quot; en Supabase Storage y pega la URL publica aqui.
+      </p>
+
+      <div className="space-y-2">
+        {testimonials.map((t) => (
+          <div
+            key={t.id as string}
+            className="flex items-center gap-3 rounded-lg border border-border p-3"
+          >
+            {t.thumbnail_url && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={t.thumbnail_url as string}
+                alt={t.name as string}
+                className="h-12 w-9 rounded-lg object-cover border border-border shrink-0"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {t.name as string}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {(t.subtitle as string) || "Sin subtitulo"}
+              </p>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${t.is_active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+              {t.is_active ? "Activo" : "Inactivo"}
+            </span>
+            <button
+              onClick={() => setEditing({ ...t })}
+              className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => remove(t.id as string)}
+              className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive-foreground"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {editing && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">
+              {editing.id ? "Editar Testimonio" : "Nuevo Testimonio"}
+            </h3>
+            <button onClick={() => setEditing(null)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FieldInput label="Nombre" value={(editing.name as string) ?? ""} onChange={(v) => setEditing({ ...editing, name: v })} />
+            <FieldInput label="Subtitulo" value={(editing.subtitle as string) ?? ""} onChange={(v) => setEditing({ ...editing, subtitle: v })} placeholder="Ej: Paciente, Estudiante..." />
+            <FieldInput label="Video URL" value={(editing.video_url as string) ?? ""} onChange={(v) => setEditing({ ...editing, video_url: v })} placeholder="URL del video en Storage" />
+            <FieldInput label="Thumbnail URL" value={(editing.thumbnail_url as string) ?? ""} onChange={(v) => setEditing({ ...editing, thumbnail_url: v })} placeholder="URL de la miniatura" />
+            <FieldInput label="Orden" value={String(editing.display_order ?? 0)} onChange={(v) => setEditing({ ...editing, display_order: parseInt(v) || 0 })} type="number" />
+          </div>
+          <ToggleField label="Activo" checked={(editing.is_active as boolean) ?? true} onChange={(v) => setEditing({ ...editing, is_active: v })} />
+          <ActionButton onClick={save} loading={isPending} label="Guardar" icon={Save} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ─── Surveys Tab ─── */
 function SurveysTab({ surveys }: { surveys: Record<string, unknown>[] }) {
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -875,6 +1002,58 @@ function SurveysTab({ surveys }: { surveys: Record<string, unknown>[] }) {
           )
         })}
       </div>
+    </div>
+  )
+}
+
+/* ─── Pre-Users Tab ─── */
+function PreUsersTab({ preUsers }: { preUsers: Record<string, unknown>[] }) {
+  return (
+    <div className="space-y-4">
+      <SectionHeader title="Pre-Usuarios Registrados" />
+      <p className="text-xs text-muted-foreground">
+        Usuarios que completaron la encuesta de registro. Total: <span className="font-semibold text-foreground">{preUsers.length}</span>
+      </p>
+
+      {preUsers.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-8">
+          Aun no hay pre-usuarios registrados.
+        </p>
+      )}
+
+      {/* Table */}
+      {preUsers.length > 0 && (
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border bg-secondary/50">
+                <th className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase">Nombre</th>
+                <th className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase">Email</th>
+                <th className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase">Celular</th>
+                <th className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase">Dolor</th>
+                <th className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase">Experiencia</th>
+                <th className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase">Expectativa</th>
+                <th className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase">Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {preUsers.map((u) => (
+                <tr key={u.id as string} className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors">
+                  <td className="px-3 py-2 text-xs font-medium text-foreground whitespace-nowrap">{u.name as string}</td>
+                  <td className="px-3 py-2 text-xs text-muted-foreground">{u.email as string}</td>
+                  <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{(u.phone as string) || "-"}</td>
+                  <td className="px-3 py-2 text-xs text-muted-foreground max-w-32 truncate">{(u.dolor as string) || "-"}</td>
+                  <td className="px-3 py-2 text-xs text-muted-foreground max-w-28 truncate">{(u.experiencia as string) || "-"}</td>
+                  <td className="px-3 py-2 text-xs text-muted-foreground max-w-32 truncate">{(u.expectativa as string) || "-"}</td>
+                  <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
+                    {new Date(u.created_at as string).toLocaleDateString("es-AR")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

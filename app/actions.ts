@@ -29,5 +29,16 @@ export async function submitSurvey(input: SubmitSurveyInput) {
     throw new Error("Error al guardar la encuesta: " + error.message)
   }
 
+  // Also register as pre-user
+  await supabase.from("pre_users").insert({
+    name: input.name,
+    email: input.email,
+    phone: input.phone,
+    dolor: input.dolor,
+    experiencia: input.experiencia,
+    expectativa: input.expectativa,
+    source: "survey",
+  })
+
   return { success: true }
 }

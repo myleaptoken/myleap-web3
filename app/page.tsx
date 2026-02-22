@@ -1,6 +1,7 @@
 import { ProfileHeader } from "@/components/profile-header"
 import { SocialIcons } from "@/components/social-icons"
 import { CTALinks } from "@/components/cta-links"
+import { TestimonialsCarousel } from "@/components/testimonials-carousel"
 import { FeaturedContent } from "@/components/featured-content"
 import { ProfileFooter } from "@/components/profile-footer"
 import { AmbientBackground } from "@/components/ambient-background"
@@ -8,7 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { getPageData } from "@/lib/data"
 
 export default async function ProfilePage() {
-  const { profile, socialLinks, ctaLinks, featuredLinks, facilitators } =
+  const { profile, socialLinks, ctaLinks, featuredLinks, facilitators, testimonials } =
     await getPageData()
 
   return (
@@ -37,6 +38,23 @@ export default async function ProfilePage() {
         <section className="w-full" aria-label="Enlaces principales">
           <CTALinks links={ctaLinks} facilitators={facilitators} />
         </section>
+
+        {/* Testimonials Carousel */}
+        {testimonials.length > 0 && (
+          <>
+            <div className="my-6 flex w-full items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+                Testimonios
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            <section className="w-full" aria-label="Testimonios">
+              <TestimonialsCarousel testimonials={testimonials} />
+            </section>
+          </>
+        )}
 
         {/* Divider – only show if there are featured items */}
         {featuredLinks.length > 0 && (

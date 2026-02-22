@@ -63,6 +63,28 @@ export interface Facilitator {
   is_active: boolean
 }
 
+export interface Testimonial {
+  id: string
+  name: string
+  subtitle: string | null
+  thumbnail_url: string | null
+  video_url: string
+  display_order: number
+  is_active: boolean
+}
+
+export interface PreUser {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  dolor: string | null
+  experiencia: string | null
+  expectativa: string | null
+  source: string
+  created_at: string
+}
+
 /* ─── Joined types for the frontend ─── */
 
 export interface CTALinkWithModal extends CTALink {
@@ -75,4 +97,5 @@ export interface PageData {
   ctaLinks: CTALinkWithModal[]
   featuredLinks: CTALinkWithModal[]
   facilitators: Facilitator[]
+  testimonials: Testimonial[]
 }

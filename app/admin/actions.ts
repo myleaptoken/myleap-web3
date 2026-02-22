@@ -128,12 +128,38 @@ export async function deleteFacilitator(id: string) {
   return { success: true }
 }
 
+// ─── Testimonials ───
+export async function upsertTestimonial(data: Record<string, unknown>) {
+  await requireAdmin()
+  const supabase = createAdminClient()
+  if (data.id) {
+    const id = data.id
+    delete data.id
+    const { error } = await supabase.from("testimonials").update(data).eq("id", id)
+    if (error) throw new Error(error.message)
+  } else {
+    const { error } = await supabase.from("testimonials").insert(data)
+    if (error) throw new Error(error.message)
+  }
+  revalidateAll()
+  return { success: true }
+}
+
+export async function deleteTestimonial(id: string) {
+  await requireAdmin()
+  const supabase = createAdminClient()
+  const { error } = await supabase.from("testimonials").delete().eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidateAll()
+  return { success: true }
+}
+
 // ─── Fetch all admin data ───
 export async function getAdminData() {
   await requireAdmin()
   const supabase = createAdminClient()
 
-  const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes] =
+  const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes, testimonialsRes, preUsersRes] =
     await Promise.all([
       supabase.from("profile").select("*").limit(1).single(),
       supabase.from("social_links").select("*").order("display_order"),
@@ -141,6 +167,8 @@ export async function getAdminData() {
       supabase.from("cta_modal_content").select("*"),
       supabase.from("facilitators").select("*").order("display_order"),
       supabase.from("survey_responses").select("*").order("created_at", { ascending: false }),
+      supabase.from("testimonials").select("*").order("display_order"),
+      supabase.from("pre_users").select("*").order("created_at", { ascending: false }),
     ])
 
   return {
@@ -150,5 +178,7 @@ export async function getAdminData() {
     modalContents: modalsRes.data ?? [],
     facilitators: facilitatorsRes.data ?? [],
     surveys: surveysRes.data ?? [],
+    testimonials: testimonialsRes.data ?? [],
+    preUsers: preUsersRes.data ?? [],
   }
 }

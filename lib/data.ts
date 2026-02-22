@@ -4,6 +4,7 @@ import type {
   SocialLink,
   CTALinkWithModal,
   Facilitator,
+  Testimonial,
   PageData,
 } from "@/lib/types"
 
@@ -11,7 +12,7 @@ export async function getPageData(): Promise<PageData> {
   const supabase = await createClient()
 
   // Fetch all data in parallel
-  const [profileRes, socialsRes, ctaRes, facilitatorsRes] = await Promise.all([
+  const [profileRes, socialsRes, ctaRes, facilitatorsRes, testimonialsRes] = await Promise.all([
     supabase.from("profile").select("*").limit(1).single(),
     supabase
       .from("social_links")
@@ -25,6 +26,11 @@ export async function getPageData(): Promise<PageData> {
       .order("display_order"),
     supabase
       .from("facilitators")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order"),
+    supabase
+      .from("testimonials")
       .select("*")
       .eq("is_active", true)
       .order("display_order"),
@@ -45,10 +51,11 @@ export async function getPageData(): Promise<PageData> {
   const socialLinks = (socialsRes.data as SocialLink[]) ?? []
   const allCtaLinks = (ctaRes.data as CTALinkWithModal[]) ?? []
   const facilitators = (facilitatorsRes.data as Facilitator[]) ?? []
+  const testimonials = (testimonialsRes.data as Testimonial[]) ?? []
 
   // Split CTA links: all active for the links section, featured only for the featured section
   const ctaLinks = allCtaLinks
   const featuredLinks = allCtaLinks.filter((l) => l.is_featured)
 
-  return { profile, socialLinks, ctaLinks, featuredLinks, facilitators }
+  return { profile, socialLinks, ctaLinks, featuredLinks, facilitators, testimonials }
 }
