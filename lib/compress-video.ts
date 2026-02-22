@@ -1,16 +1,13 @@
 /**
  * Client-side video compression using Canvas + MediaRecorder.
- * Re-encodes the video at a lower bitrate to reduce file size.
- * No external dependencies required - uses only browser APIs.
+ * Simplified and robust approach that avoids real-time playback issues.
  */
 
-const TARGET_SIZE_MB = 90 // Target under 100MB
-const MAX_WIDTH = 1280
-const MAX_HEIGHT = 720
+const MAX_UPLOAD_MB = 200
 
 export interface CompressionProgress {
-  stage: "loading" | "compressing" | "done"
-  percent: number // 0-100
+  stage: "loading" | "compressing" | "finalizing" | "done" | "skipped"
+  percent: number
   message: string
 }
 
@@ -20,15 +17,15 @@ export async function compressVideo(
 ): Promise<File> {
   const fileSizeMB = file.size / (1024 * 1024)
 
-  // If already under limit, return as-is
-  if (fileSizeMB <= TARGET_SIZE_MB) {
-    onProgress?.({ stage: "done", percent: 100, message: "Video ya es menor a 100MB" })
+  // If under limit, skip compression
+  if (fileSizeMB <= MAX_UPLOAD_MB) {
+    onProgress?.({ stage: "skipped", percent: 100, message: `Video de ${fileSizeMB.toFixed(1)}MB listo para subir` })
     return file
   }
 
-  onProgress?.({ stage: "loading", percent: 0, message: "Cargando video..." })
+  onProgress?.({ stage: "loading", percent: 5, message: "Cargando video para comprimir..." })
 
-  // Create video element to read metadata
+  // Create a video element to read metadata
   const videoUrl = URL.createObjectURL(file)
   const video = document.createElement("video")
   video.muted = true
@@ -36,77 +33,58 @@ export async function compressVideo(
   video.preload = "auto"
   video.src = videoUrl
 
+  // Wait for metadata + enough data to play
   await new Promise<void>((resolve, reject) => {
-    video.onloadedmetadata = () => resolve()
-    video.onerror = () => reject(new Error("No se pudo cargar el video"))
+    const timeout = setTimeout(() => reject(new Error("Timeout cargando video")), 30000)
+    video.oncanplaythrough = () => { clearTimeout(timeout); resolve() }
+    video.onloadedmetadata = () => {
+      // Also start loading data
+      video.currentTime = 0
+    }
+    video.onerror = () => { clearTimeout(timeout); reject(new Error("No se pudo cargar el video")) }
   })
 
   const duration = video.duration
-  if (!duration || !isFinite(duration)) {
+  if (!duration || !isFinite(duration) || duration <= 0) {
     URL.revokeObjectURL(videoUrl)
     throw new Error("No se pudo determinar la duracion del video")
   }
 
-  // Calculate target dimensions maintaining aspect ratio
+  // Calculate dimensions (scale down to 720p max)
   let width = video.videoWidth
   let height = video.videoHeight
-  if (width > MAX_WIDTH) {
-    height = Math.round((height * MAX_WIDTH) / width)
-    width = MAX_WIDTH
+  const maxW = 1280, maxH = 720
+  if (width > maxW || height > maxH) {
+    const scale = Math.min(maxW / width, maxH / height)
+    width = Math.round(width * scale)
+    height = Math.round(height * scale)
   }
-  if (height > MAX_HEIGHT) {
-    width = Math.round((width * MAX_HEIGHT) / height)
-    height = MAX_HEIGHT
-  }
-  // Ensure even dimensions (required by many codecs)
-  width = width % 2 === 0 ? width : width - 1
-  height = height % 2 === 0 ? height : height - 1
+  // Even dimensions
+  width = width - (width % 2)
+  height = height - (height % 2)
 
-  // Calculate target bitrate to fit under TARGET_SIZE_MB
-  // Total bits = TARGET_SIZE_MB * 8 * 1024 * 1024
-  // Bitrate = Total bits / duration (with some margin for audio + overhead)
-  const targetTotalBits = TARGET_SIZE_MB * 8 * 1024 * 1024 * 0.85 // 85% margin
-  const audioBitrate = 128000 // 128kbps audio
-  const videoBitrate = Math.floor((targetTotalBits / duration) - audioBitrate)
+  // Target bitrate calculation
+  const targetMB = MAX_UPLOAD_MB * 0.85
+  const targetBits = targetMB * 8 * 1024 * 1024
+  const videoBps = Math.max(Math.floor(targetBits / duration - 128000), 500000)
 
-  onProgress?.({ stage: "compressing", percent: 5, message: `Comprimiendo ${fileSizeMB.toFixed(0)}MB -> ~${TARGET_SIZE_MB}MB...` })
+  onProgress?.({ stage: "compressing", percent: 10, message: `Comprimiendo ${fileSizeMB.toFixed(0)}MB a ~${Math.round(targetMB)}MB...` })
 
-  // Set up canvas for re-encoding
+  // Set up canvas
   const canvas = document.createElement("canvas")
   canvas.width = width
   canvas.height = height
   const ctx = canvas.getContext("2d")!
 
-  // Capture stream from canvas + audio from video
-  const canvasStream = canvas.captureStream(30) // 30fps
-  let combinedStream: MediaStream
+  // Canvas stream at 30fps
+  const fps = 30
+  const canvasStream = canvas.captureStream(fps)
 
-  // Try to capture audio from the video
-  try {
-    const audioCtx = new AudioContext()
-    const source = audioCtx.createMediaElementSource(video)
-    const dest = audioCtx.createMediaStreamDestination()
-    source.connect(dest)
-    source.connect(audioCtx.destination)
-    const audioTrack = dest.stream.getAudioTracks()[0]
-    if (audioTrack) {
-      combinedStream = new MediaStream([
-        ...canvasStream.getVideoTracks(),
-        audioTrack,
-      ])
-    } else {
-      combinedStream = canvasStream
-    }
-  } catch {
-    combinedStream = canvasStream
-  }
-
-  // Use MediaRecorder with target bitrate
+  // Select best supported mime type
   const mimeTypes = [
-    "video/webm;codecs=vp9,opus",
     "video/webm;codecs=vp8,opus",
+    "video/webm;codecs=vp9,opus",
     "video/webm",
-    "video/mp4",
   ]
   let selectedMime = ""
   for (const mime of mimeTypes) {
@@ -117,61 +95,76 @@ export async function compressVideo(
   }
   if (!selectedMime) {
     URL.revokeObjectURL(videoUrl)
-    throw new Error("Tu navegador no soporta compresion de video")
+    throw new Error("Tu navegador no soporta la compresion de video. Usa Chrome o Edge.")
   }
 
+  // Frame-by-frame approach: seek through video and capture each frame
+  // This avoids real-time playback issues
   const chunks: Blob[] = []
-  const recorder = new MediaRecorder(combinedStream, {
+  const recorder = new MediaRecorder(canvasStream, {
     mimeType: selectedMime,
-    videoBitsPerSecond: Math.max(videoBitrate, 500000), // min 500kbps
+    videoBitsPerSecond: videoBps,
   })
 
   recorder.ondataavailable = (e) => {
     if (e.data.size > 0) chunks.push(e.data)
   }
 
-  const recordingDone = new Promise<Blob>((resolve) => {
-    recorder.onstop = () => {
-      resolve(new Blob(chunks, { type: selectedMime.split(";")[0] }))
-    }
+  const recorderStopped = new Promise<void>((resolve) => {
+    recorder.onstop = () => resolve()
   })
 
-  recorder.start(1000) // Collect data every second
+  recorder.start(500)
 
-  // Play video and draw frames to canvas
-  video.currentTime = 0
-  await video.play()
+  // Process frames by seeking through the video
+  const totalFrames = Math.ceil(duration * fps)
+  const frameInterval = 1 / fps
 
-  const drawFrame = () => {
-    if (video.ended || video.paused) return
-    ctx.drawImage(video, 0, 0, width, height)
+  for (let i = 0; i <= totalFrames; i++) {
+    const seekTime = Math.min(i * frameInterval, duration)
 
-    const progress = Math.min(95, 5 + (video.currentTime / duration) * 90)
-    onProgress?.({
-      stage: "compressing",
-      percent: Math.round(progress),
-      message: `Comprimiendo... ${Math.round(video.currentTime)}s / ${Math.round(duration)}s`,
+    // Seek to the frame
+    video.currentTime = seekTime
+    await new Promise<void>((resolve) => {
+      const onSeeked = () => {
+        video.removeEventListener("seeked", onSeeked)
+        resolve()
+      }
+      video.addEventListener("seeked", onSeeked)
     })
 
-    requestAnimationFrame(drawFrame)
-  }
-  requestAnimationFrame(drawFrame)
+    // Draw frame to canvas
+    ctx.drawImage(video, 0, 0, width, height)
 
-  // Wait for video to finish playing
-  await new Promise<void>((resolve) => {
-    video.onended = () => resolve()
-  })
+    // Wait for frame duration to maintain timing for MediaRecorder
+    await new Promise((r) => setTimeout(r, 10))
+
+    // Update progress
+    if (i % 30 === 0 || i === totalFrames) {
+      const percent = 10 + Math.round((i / totalFrames) * 80)
+      const currentSec = Math.round(seekTime)
+      const totalSec = Math.round(duration)
+      onProgress?.({
+        stage: "compressing",
+        percent: Math.min(percent, 90),
+        message: `Comprimiendo... ${currentSec}s / ${totalSec}s`,
+      })
+    }
+  }
+
+  onProgress?.({ stage: "finalizing", percent: 92, message: "Finalizando compresion..." })
 
   recorder.stop()
-  const compressedBlob = await recordingDone
+  await recorderStopped
 
   URL.revokeObjectURL(videoUrl)
 
+  const blob = new Blob(chunks, { type: selectedMime.split(";")[0] })
   const ext = selectedMime.includes("webm") ? "webm" : "mp4"
   const compressedFile = new File(
-    [compressedBlob],
+    [blob],
     file.name.replace(/\.[^.]+$/, `.compressed.${ext}`),
-    { type: compressedBlob.type },
+    { type: blob.type },
   )
 
   const newSizeMB = compressedFile.size / (1024 * 1024)

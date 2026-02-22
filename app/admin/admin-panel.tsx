@@ -34,6 +34,7 @@ import {
   Video,
   UserCheck,
   Upload,
+  CheckCircle2,
 } from "lucide-react"
 
 /* ─── Types ─── */
@@ -856,17 +857,22 @@ function TestimonialsTab({
       let fileToUpload = file
       const sizeMB = file.size / (1024 * 1024)
 
-      // Compress video if larger than 90MB
-      if (type === "video" && sizeMB > 90) {
-        setUploadProgress(`Video de ${sizeMB.toFixed(0)}MB detectado, comprimiendo...`)
+      // Only compress videos larger than 200MB
+      if (type === "video" && sizeMB > 200) {
+        setUploadProgress(`Video de ${sizeMB.toFixed(0)}MB detectado. Comprimiendo...`)
         const { compressVideo } = await import("@/lib/compress-video")
         fileToUpload = await compressVideo(file, (p) => {
           setUploadProgress(p.message)
           setCompressionPercent(p.percent)
         })
+        const newSizeMB = fileToUpload.size / (1024 * 1024)
+        setUploadProgress(`Comprimido a ${newSizeMB.toFixed(1)}MB. Subiendo...`)
+      } else if (type === "video") {
+        setUploadProgress(`Subiendo video (${sizeMB.toFixed(1)}MB)...`)
+      } else {
+        setUploadProgress("Subiendo imagen...")
       }
 
-      setUploadProgress("Subiendo archivo...")
       setCompressionPercent(0)
 
       const fd = new FormData()
@@ -887,10 +893,11 @@ function TestimonialsTab({
       const json = await res.json()
       if (type === "video") {
         setEditing((prev) => prev ? { ...prev, video_url: json.url } : prev)
+        setUploadProgress("Video subido correctamente")
       } else {
         setEditing((prev) => prev ? { ...prev, thumbnail_url: json.url } : prev)
+        setUploadProgress("Imagen subida correctamente")
       }
-      setUploadProgress("")
     } catch (err) {
       alert("Error al subir: " + (err instanceof Error ? err.message : "desconocido"))
       setUploadProgress("")
@@ -997,13 +1004,16 @@ function TestimonialsTab({
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-foreground">Video</label>
             {editing.video_url ? (
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2">
-                <Video className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-xs text-muted-foreground truncate flex-1">
-                  {(editing.video_url as string).split("/").pop()}
-                </span>
+              <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5">
+                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-primary">Video cargado</p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {(editing.video_url as string).split("/").pop()}
+                  </p>
+                </div>
                 <button
-                  onClick={() => setEditing({ ...editing, video_url: "" })}
+                  onClick={() => { setEditing({ ...editing, video_url: "" }); setUploadProgress("") }}
                   className="text-xs text-destructive-foreground hover:underline shrink-0"
                 >
                   Quitar
@@ -1039,7 +1049,7 @@ function TestimonialsTab({
                       <>
                         <Upload className="h-5 w-5 mb-1" />
                         <span>Haz clic o arrastra un video aqui</span>
-                        <span className="text-[10px] text-muted-foreground/60">Videos grandes se comprimen automaticamente</span>
+                        <span className="text-[10px] text-muted-foreground/60">Hasta 200MB directo. Mas de 200MB se comprime automaticamente</span>
                       </>
                     )}
                   </div>
@@ -1052,18 +1062,21 @@ function TestimonialsTab({
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-foreground">Miniatura (opcional)</label>
             {editing.thumbnail_url ? (
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2">
+              <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={editing.thumbnail_url as string}
                   alt="Miniatura"
                   className="h-10 w-7 rounded object-cover border border-border"
                 />
-                <span className="text-xs text-muted-foreground truncate flex-1">
-                  {(editing.thumbnail_url as string).split("/").pop()}
-                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-primary">Miniatura cargada</p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {(editing.thumbnail_url as string).split("/").pop()}
+                  </p>
+                </div>
                 <button
-                  onClick={() => setEditing({ ...editing, thumbnail_url: "" })}
+                  onClick={() => { setEditing({ ...editing, thumbnail_url: "" }); setUploadProgress("") }}
                   className="text-xs text-destructive-foreground hover:underline shrink-0"
                 >
                   Quitar
