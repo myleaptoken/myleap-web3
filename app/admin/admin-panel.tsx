@@ -837,6 +837,7 @@ function TestimonialsTab({
   const [uploadProgress, setUploadProgress] = useState("")
   const [compressionPercent, setCompressionPercent] = useState(0)
   const [videoMode, setVideoMode] = useState<"upload" | "url">("upload")
+  const [videoUrlInput, setVideoUrlInput] = useState("")
   const router = useRouter()
 
   function openNew() {
@@ -1067,25 +1068,28 @@ function TestimonialsTab({
                   <div className="flex gap-2">
                     <input
                       type="text"
+                      value={videoUrlInput}
+                      onChange={(e) => setVideoUrlInput(e.target.value)}
                       placeholder="https://youtube.com/... o https://instagram.com/..."
                       className="flex-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault()
-                          const val = (e.target as HTMLInputElement).value.trim()
+                          const val = videoUrlInput.trim()
                           if (val) {
                             setEditing((prev) => prev ? { ...prev, video_url: val } : prev)
+                            setVideoUrlInput("")
                           }
                         }
                       }}
                     />
                     <button
                       type="button"
-                      onClick={(e) => {
-                        const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement
-                        const val = input?.value?.trim()
+                      onClick={() => {
+                        const val = videoUrlInput.trim()
                         if (val) {
                           setEditing((prev) => prev ? { ...prev, video_url: val } : prev)
+                          setVideoUrlInput("")
                         }
                       }}
                       className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
