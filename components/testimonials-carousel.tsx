@@ -4,12 +4,10 @@ import { useState, useRef, useCallback } from "react"
 import { Play, X, ChevronLeft, ChevronRight } from "lucide-react"
 import type { Testimonial } from "@/lib/types"
 
-// Only YouTube and Vimeo reliably support iframe embeds
 function isIframeEmbed(url: string): boolean {
   return /youtube\.com|youtu\.be|vimeo\.com/.test(url)
 }
 
-// Instagram / TikTok / other social: open externally
 function isExternalOnly(url: string): boolean {
   return /instagram\.com|tiktok\.com/.test(url)
 }
@@ -30,7 +28,7 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
 
   const scrollCarousel = useCallback((dir: number) => {
     if (!scrollRef.current) return
-    scrollRef.current.scrollBy({ left: dir * 140, behavior: "smooth" })
+    scrollRef.current.scrollBy({ left: dir * 180, behavior: "smooth" })
   }, [])
 
   function openVideo(idx: number) {
@@ -55,8 +53,7 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
     <div className="w-full space-y-3">
       {/* Carousel row */}
       <div className="relative">
-        {/* Left arrow */}
-        {testimonials.length > 2 && (
+        {testimonials.length > 3 && (
           <button
             onClick={() => scrollCarousel(-1)}
             className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-background/80 border border-border shadow-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -77,11 +74,11 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
               type="button"
               onClick={() => openVideo(i)}
               className={`group relative flex-shrink-0 snap-start cursor-pointer transition-all duration-200 ${
-                activeIndex === i ? "ring-2 ring-primary ring-offset-1 ring-offset-background rounded-lg" : ""
+                activeIndex === i ? "ring-2 ring-primary ring-offset-1 ring-offset-background rounded-xl" : ""
               }`}
-              style={{ width: "calc((100% - 20px) / 2.5)" }}
+              style={{ width: "clamp(120px, 30vw, 160px)" }}
             >
-              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border border-border bg-secondary transition-all duration-200 group-hover:border-primary/40 group-hover:shadow-md group-hover:shadow-primary/5">
+              <div className="relative aspect-[8/5] w-full overflow-hidden rounded-xl border border-border bg-secondary transition-all duration-200 group-hover:border-primary/40 group-hover:shadow-md group-hover:shadow-primary/5">
                 {t.thumbnail_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -97,13 +94,13 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
 
                 {/* Play icon */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 opacity-80 group-hover:opacity-100 group-hover:bg-primary/80 transition-all duration-200">
-                    <Play className="h-3 w-3 text-white ml-0.5" fill="currentColor" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/80 shadow-lg shadow-primary/20 opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200">
+                    <Play className="h-3.5 w-3.5 text-white ml-0.5" fill="currentColor" />
                   </div>
                 </div>
 
                 {/* Bottom gradient + name */}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-1.5 pt-5">
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-2 pb-1.5 pt-4">
                   <p className="text-[10px] font-semibold text-white leading-tight truncate">{t.name}</p>
                   {t.subtitle && (
                     <p className="text-[8px] text-white/60 truncate">{t.subtitle}</p>
@@ -114,8 +111,7 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
           ))}
         </div>
 
-        {/* Right arrow */}
-        {testimonials.length > 2 && (
+        {testimonials.length > 3 && (
           <button
             onClick={() => scrollCarousel(1)}
             className="absolute -right-1 top-1/2 -translate-y-1/2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-background/80 border border-border shadow-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -127,16 +123,14 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
       </div>
 
       {/* Floating modal overlay */}
-      {active && (
+      {active !== null && activeIndex !== null && (
         <>
-          {/* Backdrop */}
           <div
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={closeVideo}
             aria-hidden="true"
           />
 
-          {/* Modal container */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
             <div
               className="pointer-events-auto relative w-full max-w-sm rounded-2xl border border-border bg-card shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300"
@@ -152,7 +146,7 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
                 <X className="h-3.5 w-3.5" />
               </button>
 
-              {/* Video */}
+              {/* Video -- key uses activeIndex to force full remount on navigation */}
               <div className="relative w-full bg-black" style={{ aspectRatio: "9/16", maxHeight: "70vh" }}>
                 {!active.video_url ? (
                   <div className="flex h-full w-full items-center justify-center text-white/50 text-sm">
@@ -160,7 +154,7 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
                   </div>
                 ) : isIframeEmbed(active.video_url) ? (
                   <iframe
-                    key={active.id}
+                    key={`iframe-${activeIndex}`}
                     src={getEmbedUrl(active.video_url)}
                     className="h-full w-full"
                     allow="autoplay; encrypted-media; picture-in-picture"
@@ -168,7 +162,7 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
                     title={`Testimonio de ${active.name}`}
                   />
                 ) : isExternalOnly(active.video_url) ? (
-                  <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-6">
+                  <div key={`ext-${activeIndex}`} className="flex h-full w-full flex-col items-center justify-center gap-3 p-6">
                     <p className="text-white/70 text-xs text-center">
                       Este video se reproduce en la plataforma original
                     </p>
@@ -183,7 +177,7 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
                   </div>
                 ) : (
                   <video
-                    key={active.id}
+                    key={`video-${activeIndex}`}
                     src={active.video_url}
                     controls
                     autoPlay
@@ -210,7 +204,7 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
                   <p className="text-xs font-semibold text-foreground truncate">{active.name}</p>
                   <p className="text-[10px] text-muted-foreground">
                     {active.subtitle ? `${active.subtitle} \u00B7 ` : ""}
-                    {(activeIndex ?? 0) + 1}/{testimonials.length}
+                    {activeIndex + 1}/{testimonials.length}
                   </p>
                 </div>
 
