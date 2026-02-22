@@ -1,11 +1,7 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { Play, X, ChevronLeft, ChevronRight, Quote } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog"
+import { useState, useRef, useCallback } from "react"
+import { Play, X, ChevronLeft, ChevronRight } from "lucide-react"
 import type { Testimonial } from "@/lib/types"
 
 function isEmbedUrl(url: string): boolean {
@@ -13,77 +9,75 @@ function isEmbedUrl(url: string): boolean {
 }
 
 function getEmbedUrl(url: string): string {
-  // YouTube
   const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/)
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`
-
-  // Vimeo
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
   if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`
-
-  // Instagram reels
   const igMatch = url.match(/instagram\.com\/(?:reel|p)\/([a-zA-Z0-9_-]+)/)
   if (igMatch) return `https://www.instagram.com/p/${igMatch[1]}/embed/`
-
   return url
 }
 
 export function TestimonialsCarousel({ testimonials }: { testimonials: Testimonial[] }) {
-  const [selectedVideo, setSelectedVideo] = useState<Testimonial | null>(null)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   if (testimonials.length === 0) return null
 
-  function scrollBy(dir: number) {
+  const scrollCarousel = useCallback((dir: number) => {
     if (!scrollRef.current) return
-    scrollRef.current.scrollBy({ left: dir * 200, behavior: "smooth" })
+    scrollRef.current.scrollBy({ left: dir * 140, behavior: "smooth" })
+  }, [])
+
+  function openVideo(idx: number) {
+    setActiveIndex(idx)
   }
 
-  return (
-    <>
-      <div className="w-full animate-fade-up" style={{ animationDelay: "0.5s" }}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Quote className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-              Testimonios
-            </h2>
-          </div>
-          {testimonials.length > 3 && (
-            <div className="flex gap-1">
-              <button
-                onClick={() => scrollBy(-1)}
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-secondary/50 text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
-                aria-label="Anterior"
-              >
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={() => scrollBy(1)}
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-secondary/50 text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
-                aria-label="Siguiente"
-              >
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          )}
-        </div>
+  function closeVideo() {
+    setActiveIndex(null)
+  }
 
-        {/* Carousel */}
+  function navVideo(dir: number) {
+    if (activeIndex === null) return
+    const next = activeIndex + dir
+    if (next >= 0 && next < testimonials.length) {
+      setActiveIndex(next)
+    }
+  }
+
+  const active = activeIndex !== null ? testimonials[activeIndex] : null
+
+  return (
+    <div className="w-full space-y-3">
+      {/* Carousel row */}
+      <div className="relative">
+        {/* Left arrow */}
+        {testimonials.length > 2 && (
+          <button
+            onClick={() => scrollCarousel(-1)}
+            className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-background/80 border border-border shadow-sm text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="h-3 w-3" />
+          </button>
+        )}
+
         <div
           ref={scrollRef}
-          className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory"
+          className="flex gap-2.5 overflow-x-auto pb-1 snap-x snap-mandatory px-1"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {testimonials.map((t) => (
+          {testimonials.map((t, i) => (
             <button
               key={t.id}
               type="button"
-              onClick={() => setSelectedVideo(t)}
-              className="group relative flex-shrink-0 w-32 sm:w-36 snap-start cursor-pointer"
+              onClick={() => openVideo(i)}
+              className={`group relative flex-shrink-0 snap-start cursor-pointer transition-all duration-200 ${
+                activeIndex === i ? "ring-2 ring-primary ring-offset-1 ring-offset-background rounded-lg" : ""
+              }`}
+              style={{ width: "calc((100% - 20px) / 2.5)" }}
             >
-              {/* Thumbnail */}
-              <div className="relative aspect-[9/14] w-full overflow-hidden rounded-xl border border-border bg-secondary transition-all duration-300 group-hover:border-primary/50 group-hover:shadow-lg group-hover:shadow-primary/10 group-hover:scale-[1.03]">
+              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border border-border bg-secondary transition-all duration-200 group-hover:border-primary/40 group-hover:shadow-md group-hover:shadow-primary/5">
                 {t.thumbnail_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -93,79 +87,112 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-gradient-to-b from-primary/10 to-primary/5">
-                    <Play className="h-8 w-8 text-primary/40" />
+                    <Play className="h-5 w-5 text-primary/40" />
                   </div>
                 )}
 
-                {/* Play overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/90 shadow-lg">
-                    <Play className="h-4 w-4 text-primary-foreground ml-0.5" fill="currentColor" />
+                {/* Play icon */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 opacity-80 group-hover:opacity-100 group-hover:bg-primary/80 transition-all duration-200">
+                    <Play className="h-3 w-3 text-white ml-0.5" fill="currentColor" />
                   </div>
                 </div>
 
-                {/* Gradient bottom */}
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent" />
-
-                {/* Name */}
-                <div className="absolute inset-x-0 bottom-0 p-2">
-                  <p className="text-xs font-semibold text-white truncate">{t.name}</p>
+                {/* Bottom gradient + name */}
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-1.5 pt-5">
+                  <p className="text-[10px] font-semibold text-white leading-tight truncate">{t.name}</p>
                   {t.subtitle && (
-                    <p className="text-[10px] text-white/70 truncate">{t.subtitle}</p>
+                    <p className="text-[8px] text-white/60 truncate">{t.subtitle}</p>
                   )}
                 </div>
               </div>
             </button>
           ))}
         </div>
+
+        {/* Right arrow */}
+        {testimonials.length > 2 && (
+          <button
+            onClick={() => scrollCarousel(1)}
+            className="absolute -right-1 top-1/2 -translate-y-1/2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-background/80 border border-border shadow-sm text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Siguiente"
+          >
+            <ChevronRight className="h-3 w-3" />
+          </button>
+        )}
       </div>
 
-      {/* Video Modal */}
-      <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-black border-none">
-          <button
-            onClick={() => setSelectedVideo(null)}
-            className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-
-          {selectedVideo && (
-            <div className="flex flex-col">
-              {/* Video player */}
-              <div className="relative w-full" style={{ aspectRatio: "9/16", maxHeight: "80vh" }}>
-                {isEmbedUrl(selectedVideo.video_url) ? (
-                  <iframe
-                    src={getEmbedUrl(selectedVideo.video_url)}
-                    className="h-full w-full"
-                    allow="autoplay; encrypted-media; picture-in-picture"
-                    allowFullScreen
-                    title={`Testimonio de ${selectedVideo.name}`}
-                  />
-                ) : (
-                  <video
-                    src={selectedVideo.video_url}
-                    controls
-                    autoPlay
-                    playsInline
-                    className="h-full w-full object-contain bg-black"
-                  >
-                    Tu navegador no soporta video.
-                  </video>
+      {/* Inline video player (not fullscreen) */}
+      {active && (
+        <div className="rounded-xl border border-border bg-card overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+          {/* Header with nav */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-secondary/30">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navVideo(-1)}
+                disabled={activeIndex === 0}
+                className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Video anterior"
+              >
+                <ChevronLeft className="h-3 w-3" />
+              </button>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground truncate">{active.name}</p>
+                {active.subtitle && (
+                  <p className="text-[10px] text-muted-foreground truncate">{active.subtitle}</p>
                 )}
               </div>
-
-              {/* Info bar */}
-              <div className="bg-card p-4">
-                <p className="text-sm font-semibold text-foreground">{selectedVideo.name}</p>
-                {selectedVideo.subtitle && (
-                  <p className="text-xs text-muted-foreground mt-0.5">{selectedVideo.subtitle}</p>
-                )}
-              </div>
+              <button
+                onClick={() => navVideo(1)}
+                disabled={activeIndex === testimonials.length - 1}
+                className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Video siguiente"
+              >
+                <ChevronRight className="h-3 w-3" />
+              </button>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
+            <button
+              onClick={closeVideo}
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Cerrar"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+
+          {/* Video */}
+          <div className="relative w-full bg-black" style={{ aspectRatio: "9/16", maxHeight: "60vh" }}>
+            {isEmbedUrl(active.video_url) ? (
+              <iframe
+                key={active.id}
+                src={getEmbedUrl(active.video_url)}
+                className="h-full w-full"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+                title={`Testimonio de ${active.name}`}
+              />
+            ) : (
+              <video
+                key={active.id}
+                src={active.video_url}
+                controls
+                autoPlay
+                playsInline
+                className="h-full w-full object-contain"
+              >
+                Tu navegador no soporta video.
+              </video>
+            )}
+          </div>
+
+          {/* Counter */}
+          <div className="px-3 py-1.5 border-t border-border bg-secondary/30 text-center">
+            <span className="text-[10px] text-muted-foreground">
+              {(activeIndex ?? 0) + 1} / {testimonials.length}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

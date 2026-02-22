@@ -855,47 +855,58 @@ function TestimonialsTab({
     setUploadProgress("")
     setCompressionPercent(0)
     try {
-      let fileToUpload = file
       const sizeMB = file.size / (1024 * 1024)
 
-      // Only compress videos larger than 200MB
-      if (type === "video" && sizeMB > 200) {
-        setUploadProgress(`Video de ${sizeMB.toFixed(0)}MB detectado. Comprimiendo...`)
-        const { compressVideo } = await import("@/lib/compress-video")
-        fileToUpload = await compressVideo(file, (p) => {
-          setUploadProgress(p.message)
-          setCompressionPercent(p.percent)
-        })
-        const newSizeMB = fileToUpload.size / (1024 * 1024)
-        setUploadProgress(`Comprimido a ${newSizeMB.toFixed(1)}MB. Subiendo...`)
-      } else if (type === "video") {
-        setUploadProgress(`Subiendo video (${sizeMB.toFixed(1)}MB)...`)
-      } else {
-        setUploadProgress("Subiendo imagen...")
-      }
-
-      setCompressionPercent(0)
-
-      const fd = new FormData()
-      fd.append("file", fileToUpload)
-      fd.append("bucket", "testimonials")
-      const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
-      if (!res.ok) {
-        let errMsg = `Error ${res.status}`
-        try {
-          const errJson = await res.json()
-          errMsg = errJson.error || errMsg
-        } catch {
-          const text = await res.text()
-          errMsg = text.slice(0, 200) || errMsg
-        }
-        throw new Error(errMsg)
-      }
-      const json = await res.json()
       if (type === "video") {
-        setEditing((prev) => prev ? { ...prev, video_url: json.url } : prev)
+        // Videos: use signed URL to upload directly to Supabase (bypasses Next.js body limit)
+        setUploadProgress(`Preparando video (${sizeMB.toFixed(1)}MB)...`)
+
+        // 1) Get signed upload URL from our API
+        const signRes = await fetch("/api/admin/upload", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType: file.type || "video/mp4",
+            bucket: "testimonials",
+          }),
+        })
+        if (!signRes.ok) {
+          const err = await signRes.json().catch(() => ({ error: `Error ${signRes.status}` }))
+          throw new Error(err.error || "Error al preparar la subida")
+        }
+        const { signedUrl, token, publicUrl } = await signRes.json()
+
+        // 2) Upload directly to Supabase Storage using signed URL
+        setUploadProgress(`Subiendo video (${sizeMB.toFixed(1)}MB)...`)
+        const uploadRes = await fetch(signedUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type || "video/mp4",
+            "x-upsert": "false",
+          },
+          body: file,
+        })
+
+        if (!uploadRes.ok) {
+          const errText = await uploadRes.text().catch(() => "Error desconocido")
+          throw new Error(`Error al subir video: ${errText.slice(0, 200)}`)
+        }
+
+        setEditing((prev) => prev ? { ...prev, video_url: publicUrl } : prev)
         setUploadProgress("Video subido correctamente")
       } else {
+        // Images: use proxy upload via POST (small files)
+        setUploadProgress("Subiendo imagen...")
+        const fd = new FormData()
+        fd.append("file", file)
+        fd.append("bucket", "testimonials")
+        const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: `Error ${res.status}` }))
+          throw new Error(err.error || "Error al subir imagen")
+        }
+        const json = await res.json()
         setEditing((prev) => prev ? { ...prev, thumbnail_url: json.url } : prev)
         setUploadProgress("Imagen subida correctamente")
       }
