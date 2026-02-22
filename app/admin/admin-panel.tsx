@@ -33,7 +33,6 @@ import {
   ChevronUp,
   Video,
   UserCheck,
-  Upload,
   CheckCircle2,
 } from "lucide-react"
 
@@ -833,14 +832,12 @@ function TestimonialsTab({
 }) {
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
   const [isPending, startTransition] = useTransition()
-  const [uploading, setUploading] = useState<"video" | "thumb" | null>(null)
-  const [uploadProgress, setUploadProgress] = useState("")
-  const [compressionPercent, setCompressionPercent] = useState(0)
-  const [videoMode, setVideoMode] = useState<"upload" | "url">("upload")
+  const [uploadingThumb, setUploadingThumb] = useState(false)
   const [videoUrlInput, setVideoUrlInput] = useState("")
   const router = useRouter()
 
   function openNew() {
+    setVideoUrlInput("")
     setEditing({
       name: "",
       subtitle: "",
@@ -851,55 +848,42 @@ function TestimonialsTab({
     })
   }
 
-  async function uploadFile(file: File, type: "video" | "thumb") {
-    setUploading(type)
-    setUploadProgress("")
-    setCompressionPercent(0)
-    try {
-      const sizeMB = file.size / (1024 * 1024)
-      setUploadProgress(
-        type === "video"
-          ? `Subiendo video (${sizeMB.toFixed(1)}MB)...`
-          : "Subiendo imagen..."
-      )
+  function applyVideoUrl() {
+    const val = videoUrlInput.trim()
+    if (!val) return
+    setEditing((prev) => prev ? { ...prev, video_url: val } : prev)
+  }
 
+  async function uploadThumbnail(file: File) {
+    setUploadingThumb(true)
+    try {
       const fd = new FormData()
       fd.append("file", file)
       fd.append("bucket", "testimonials")
-
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
-
       if (!res.ok) {
-        let errMsg = `Error ${res.status}`
-        try {
-          const errJson = await res.json()
-          errMsg = errJson.error || errMsg
-        } catch {
-          errMsg = (await res.text()).slice(0, 200) || errMsg
-        }
-        throw new Error(errMsg)
+        const err = await res.json().catch(() => ({ error: `Error ${res.status}` }))
+        throw new Error(err.error || "Error al subir")
       }
-
       const { url } = await res.json()
-
-      if (type === "video") {
-        setEditing((prev) => prev ? { ...prev, video_url: url } : prev)
-        setUploadProgress("Video subido correctamente")
-      } else {
-        setEditing((prev) => prev ? { ...prev, thumbnail_url: url } : prev)
-        setUploadProgress("Imagen subida correctamente")
-      }
+      setEditing((prev) => prev ? { ...prev, thumbnail_url: url } : prev)
     } catch (err) {
-      alert("Error al subir: " + (err instanceof Error ? err.message : "desconocido"))
-      setUploadProgress("")
+      alert("Error: " + (err instanceof Error ? err.message : "desconocido"))
     } finally {
-      setUploading(null)
-      setCompressionPercent(0)
+      setUploadingThumb(false)
     }
   }
 
   function save() {
     if (!editing) return
+    if (!editing.video_url) {
+      alert("Debes agregar una URL de video antes de guardar.")
+      return
+    }
+    if (!editing.name) {
+      alert("Debes agregar un nombre.")
+      return
+    }
     startTransition(async () => {
       const data = { ...editing }
       for (const k of ["subtitle", "thumbnail_url"]) {
@@ -907,6 +891,7 @@ function TestimonialsTab({
       }
       await upsertTestimonial(data)
       setEditing(null)
+      setVideoUrlInput("")
       router.refresh()
     })
   }
@@ -938,37 +923,26 @@ function TestimonialsTab({
               <img
                 src={t.thumbnail_url as string}
                 alt={t.name as string}
-                className="h-14 w-10 rounded-lg object-cover border border-border shrink-0"
+                className="h-12 w-16 rounded-lg object-cover border border-border shrink-0"
               />
             ) : (
-              <div className="h-14 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0 border border-border">
+              <div className="h-12 w-16 rounded-lg bg-secondary flex items-center justify-center shrink-0 border border-border">
                 <Video className="h-4 w-4 text-muted-foreground" />
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">
-                {t.name as string}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {(t.subtitle as string) || "Sin subtitulo"}
-              </p>
+              <p className="text-sm font-medium text-foreground">{t.name as string}</p>
               <p className="text-[10px] text-muted-foreground/60 truncate mt-0.5">
-                {(t.video_url as string)?.split("/").pop() || "Sin video"}
+                {(t.video_url as string) || "Sin video"}
               </p>
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full ${t.is_active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
               {t.is_active ? "Activo" : "Inactivo"}
             </span>
-            <button
-              onClick={() => setEditing({ ...t })}
-              className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
-            >
+            <button onClick={() => { setEditing({ ...t }); setVideoUrlInput("") }} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
               <Pencil className="h-3.5 w-3.5" />
             </button>
-            <button
-              onClick={() => remove(t.id as string)}
-              className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive-foreground"
-            >
+            <button onClick={() => remove(t.id as string)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive-foreground">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -981,172 +955,81 @@ function TestimonialsTab({
             <h3 className="text-sm font-semibold text-foreground">
               {editing.id ? "Editar Testimonio" : "Nuevo Testimonio"}
             </h3>
-            <button onClick={() => setEditing(null)} className="text-muted-foreground hover:text-foreground">
+            <button onClick={() => { setEditing(null); setVideoUrlInput("") }} className="text-muted-foreground hover:text-foreground">
               <X className="h-4 w-4" />
             </button>
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <FieldInput label="Nombre" value={(editing.name as string) ?? ""} onChange={(v) => setEditing({ ...editing, name: v })} />
             <FieldInput label="Subtitulo" value={(editing.subtitle as string) ?? ""} onChange={(v) => setEditing({ ...editing, subtitle: v })} placeholder="Ej: Paciente, Estudiante..." />
             <FieldInput label="Orden" value={String(editing.display_order ?? 0)} onChange={(v) => setEditing({ ...editing, display_order: parseInt(v) || 0 })} type="number" />
           </div>
 
-          {/* Video */}
+          {/* Video URL */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-foreground">Video</label>
+            <label className="text-xs font-medium text-foreground">URL del Video</label>
             {editing.video_url ? (
               <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5">
                 <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-primary">Video listo</p>
-                  <p className="text-[10px] text-muted-foreground truncate">
-                    {(editing.video_url as string)}
-                  </p>
-                </div>
+                <p className="text-[10px] text-muted-foreground truncate flex-1">{editing.video_url as string}</p>
                 <button
-                  onClick={() => { setEditing({ ...editing, video_url: "" }); setUploadProgress("") }}
+                  onClick={() => { setEditing({ ...editing, video_url: "" }); setVideoUrlInput("") }}
                   className="text-xs text-destructive-foreground hover:underline shrink-0"
                 >
                   Cambiar
                 </button>
               </div>
             ) : (
-              <div className="space-y-2">
-                {/* Mode toggle */}
-                <div className="flex rounded-lg border border-border overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setVideoMode("upload")}
-                    className={`flex-1 text-xs py-1.5 px-3 transition-colors ${videoMode === "upload" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Subir archivo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setVideoMode("url")}
-                    className={`flex-1 text-xs py-1.5 px-3 transition-colors ${videoMode === "url" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Pegar URL
-                  </button>
-                </div>
-
-                {videoMode === "upload" ? (
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0]
-                        if (f) uploadFile(f, "video")
-                      }}
-                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                      disabled={!!uploading}
-                    />
-                    <div className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border p-4 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground ${uploading === "video" ? "border-primary/40" : ""}`}>
-                      {uploading === "video" ? (
-                        <>
-                          <span className="animate-pulse">{uploadProgress || "Subiendo..."}</span>
-                          {compressionPercent > 0 && (
-                            <div className="w-full max-w-48 mt-1.5 rounded-full bg-secondary h-1.5 overflow-hidden">
-                              <div
-                                className="h-full bg-primary rounded-full transition-all duration-300"
-                                style={{ width: `${compressionPercent}%` }}
-                              />
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-5 w-5 mb-1" />
-                          <span>Haz clic o arrastra un video</span>
-                          <span className="text-[10px] text-muted-foreground/60">Hasta 200MB. Videos mayores se comprimen</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={videoUrlInput}
-                      onChange={(e) => setVideoUrlInput(e.target.value)}
-                      placeholder="https://youtube.com/... o https://instagram.com/..."
-                      className="flex-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault()
-                          const val = videoUrlInput.trim()
-                          if (val) {
-                            setEditing((prev) => prev ? { ...prev, video_url: val } : prev)
-                            setVideoUrlInput("")
-                          }
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const val = videoUrlInput.trim()
-                        if (val) {
-                          setEditing((prev) => prev ? { ...prev, video_url: val } : prev)
-                          setVideoUrlInput("")
-                        }
-                      }}
-                      className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                    >
-                      Agregar
-                    </button>
-                  </div>
-                )}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={videoUrlInput}
+                  onChange={(e) => setVideoUrlInput(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=... o URL directa"
+                  className="flex-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyVideoUrl() } }}
+                />
+                <button
+                  type="button"
+                  onClick={applyVideoUrl}
+                  disabled={!videoUrlInput.trim()}
+                  className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors"
+                >
+                  Agregar
+                </button>
               </div>
             )}
           </div>
 
-          {/* Thumbnail upload */}
+          {/* Thumbnail */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-foreground">Miniatura (opcional)</label>
             {editing.thumbnail_url ? (
               <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={editing.thumbnail_url as string}
-                  alt="Miniatura"
-                  className="h-10 w-7 rounded object-cover border border-border"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-primary">Miniatura cargada</p>
-                  <p className="text-[10px] text-muted-foreground truncate">
-                    {(editing.thumbnail_url as string).split("/").pop()}
-                  </p>
-                </div>
-                <button
-                  onClick={() => { setEditing({ ...editing, thumbnail_url: "" }); setUploadProgress("") }}
-                  className="text-xs text-destructive-foreground hover:underline shrink-0"
-                >
-                  Quitar
-                </button>
+                <img src={editing.thumbnail_url as string} alt="Miniatura" className="h-8 w-12 rounded object-cover border border-border" />
+                <p className="text-[10px] text-muted-foreground truncate flex-1">{(editing.thumbnail_url as string).split("/").pop()}</p>
+                <button onClick={() => setEditing({ ...editing, thumbnail_url: "" })} className="text-xs text-destructive-foreground hover:underline shrink-0">Quitar</button>
               </div>
             ) : (
               <div className="relative">
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) uploadFile(f, "thumb")
-                  }}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadThumbnail(f) }}
                   className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                  disabled={!!uploading}
+                  disabled={uploadingThumb}
                 />
-                <div className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border p-3 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground ${uploading === "thumb" ? "animate-pulse" : ""}`}>
-                  {uploading === "thumb" ? "Subiendo imagen..." : "Haz clic o arrastra una imagen"}
+                <div className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border p-3 text-xs text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors ${uploadingThumb ? "animate-pulse" : ""}`}>
+                  {uploadingThumb ? "Subiendo imagen..." : "Haz clic o arrastra una imagen"}
                 </div>
               </div>
             )}
           </div>
 
           <ToggleField label="Activo" checked={(editing.is_active as boolean) ?? true} onChange={(v) => setEditing({ ...editing, is_active: v })} />
-          <ActionButton onClick={save} loading={isPending || !!uploading} label={uploading ? "Subiendo..." : "Guardar y Publicar"} icon={Save} />
+          <ActionButton onClick={save} loading={isPending || uploadingThumb} label="Guardar y Publicar" icon={Save} />
         </div>
       )}
     </div>
