@@ -853,8 +853,18 @@ function TestimonialsTab({
       fd.append("file", file)
       fd.append("bucket", "testimonials")
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
+      if (!res.ok) {
+        let errMsg = `Error ${res.status}`
+        try {
+          const errJson = await res.json()
+          errMsg = errJson.error || errMsg
+        } catch {
+          const text = await res.text()
+          errMsg = text.slice(0, 200) || errMsg
+        }
+        throw new Error(errMsg)
+      }
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Error al subir archivo")
       if (type === "video") {
         setEditing((prev) => prev ? { ...prev, video_url: json.url } : prev)
       } else {
