@@ -836,6 +836,7 @@ function TestimonialsTab({
   const [uploading, setUploading] = useState<"video" | "thumb" | null>(null)
   const [uploadProgress, setUploadProgress] = useState("")
   const [compressionPercent, setCompressionPercent] = useState(0)
+  const [videoMode, setVideoMode] = useState<"upload" | "url">("upload")
   const router = useRouter()
 
   function openNew() {
@@ -1000,60 +1001,110 @@ function TestimonialsTab({
             <FieldInput label="Orden" value={String(editing.display_order ?? 0)} onChange={(v) => setEditing({ ...editing, display_order: parseInt(v) || 0 })} type="number" />
           </div>
 
-          {/* Video upload */}
+          {/* Video */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-foreground">Video</label>
             {editing.video_url ? (
               <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5">
                 <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-primary">Video cargado</p>
+                  <p className="text-xs font-medium text-primary">Video listo</p>
                   <p className="text-[10px] text-muted-foreground truncate">
-                    {(editing.video_url as string).split("/").pop()}
+                    {(editing.video_url as string)}
                   </p>
                 </div>
                 <button
                   onClick={() => { setEditing({ ...editing, video_url: "" }); setUploadProgress("") }}
                   className="text-xs text-destructive-foreground hover:underline shrink-0"
                 >
-                  Quitar
+                  Cambiar
                 </button>
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept="video/*"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      if (f) uploadFile(f, "video")
-                    }}
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                    disabled={!!uploading}
-                  />
-                  <div className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border p-4 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground ${uploading === "video" ? "border-primary/40" : ""}`}>
-                    {uploading === "video" ? (
-                      <>
-                        <span className="animate-pulse">{uploadProgress || "Procesando..."}</span>
-                        {compressionPercent > 0 && (
-                          <div className="w-full max-w-48 mt-1.5 rounded-full bg-secondary h-1.5 overflow-hidden">
-                            <div
-                              className="h-full bg-primary rounded-full transition-all duration-300"
-                              style={{ width: `${compressionPercent}%` }}
-                            />
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-5 w-5 mb-1" />
-                        <span>Haz clic o arrastra un video aqui</span>
-                        <span className="text-[10px] text-muted-foreground/60">Hasta 200MB directo. Mas de 200MB se comprime automaticamente</span>
-                      </>
-                    )}
-                  </div>
+                {/* Mode toggle */}
+                <div className="flex rounded-lg border border-border overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setVideoMode("upload")}
+                    className={`flex-1 text-xs py-1.5 px-3 transition-colors ${videoMode === "upload" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
+                  >
+                    Subir archivo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVideoMode("url")}
+                    className={`flex-1 text-xs py-1.5 px-3 transition-colors ${videoMode === "url" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
+                  >
+                    Pegar URL
+                  </button>
                 </div>
+
+                {videoMode === "upload" ? (
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) uploadFile(f, "video")
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                      disabled={!!uploading}
+                    />
+                    <div className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border p-4 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground ${uploading === "video" ? "border-primary/40" : ""}`}>
+                      {uploading === "video" ? (
+                        <>
+                          <span className="animate-pulse">{uploadProgress || "Subiendo..."}</span>
+                          {compressionPercent > 0 && (
+                            <div className="w-full max-w-48 mt-1.5 rounded-full bg-secondary h-1.5 overflow-hidden">
+                              <div
+                                className="h-full bg-primary rounded-full transition-all duration-300"
+                                style={{ width: `${compressionPercent}%` }}
+                              />
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-5 w-5 mb-1" />
+                          <span>Haz clic o arrastra un video</span>
+                          <span className="text-[10px] text-muted-foreground/60">Hasta 200MB. Videos mayores se comprimen</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="https://youtube.com/... o https://instagram.com/..."
+                      className="flex-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          const val = (e.target as HTMLInputElement).value.trim()
+                          if (val) {
+                            setEditing((prev) => prev ? { ...prev, video_url: val } : prev)
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement
+                        const val = input?.value?.trim()
+                        if (val) {
+                          setEditing((prev) => prev ? { ...prev, video_url: val } : prev)
+                        }
+                      }}
+                      className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                      Agregar
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1102,7 +1153,7 @@ function TestimonialsTab({
           </div>
 
           <ToggleField label="Activo" checked={(editing.is_active as boolean) ?? true} onChange={(v) => setEditing({ ...editing, is_active: v })} />
-          <ActionButton onClick={save} loading={isPending || !!uploading} label={uploading ? "Subiendo..." : "Guardar"} icon={Save} />
+          <ActionButton onClick={save} loading={isPending || !!uploading} label={uploading ? "Subiendo..." : "Guardar y Publicar"} icon={Save} />
         </div>
       )}
     </div>

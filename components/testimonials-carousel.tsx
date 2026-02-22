@@ -8,6 +8,26 @@ import {
 } from "@/components/ui/dialog"
 import type { Testimonial } from "@/lib/types"
 
+function isEmbedUrl(url: string): boolean {
+  return /youtube\.com|youtu\.be|instagram\.com|vimeo\.com/.test(url)
+}
+
+function getEmbedUrl(url: string): string {
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/)
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`
+
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`
+
+  // Instagram reels
+  const igMatch = url.match(/instagram\.com\/(?:reel|p)\/([a-zA-Z0-9_-]+)/)
+  if (igMatch) return `https://www.instagram.com/p/${igMatch[1]}/embed/`
+
+  return url
+}
+
 export function TestimonialsCarousel({ testimonials }: { testimonials: Testimonial[] }) {
   const [selectedVideo, setSelectedVideo] = useState<Testimonial | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -114,15 +134,25 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
             <div className="flex flex-col">
               {/* Video player */}
               <div className="relative w-full" style={{ aspectRatio: "9/16", maxHeight: "80vh" }}>
-                <video
-                  src={selectedVideo.video_url}
-                  controls
-                  autoPlay
-                  playsInline
-                  className="h-full w-full object-contain bg-black"
-                >
-                  Tu navegador no soporta video.
-                </video>
+                {isEmbedUrl(selectedVideo.video_url) ? (
+                  <iframe
+                    src={getEmbedUrl(selectedVideo.video_url)}
+                    className="h-full w-full"
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    title={`Testimonio de ${selectedVideo.name}`}
+                  />
+                ) : (
+                  <video
+                    src={selectedVideo.video_url}
+                    controls
+                    autoPlay
+                    playsInline
+                    className="h-full w-full object-contain bg-black"
+                  >
+                    Tu navegador no soporta video.
+                  </video>
+                )}
               </div>
 
               {/* Info bar */}
