@@ -20,6 +20,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No se recibio archivo" }, { status: 400 })
     }
 
+    // Read file bytes immediately before anything else can lock the stream
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const contentType = file.type || "application/octet-stream"
+    const originalName = file.name || "upload"
+
     // Create a service role client directly here to avoid any module issues
     const supabase = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,18 +32,16 @@ export async function POST(request: NextRequest) {
     )
 
     // Generate unique filename
-    const ext = file.name.split(".").pop() || "mp4"
+    const ext = originalName.split(".").pop() || "mp4"
     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = new Uint8Array(arrayBuffer)
 
     const { error } = await supabase.storage
       .from(bucket)
-      .upload(fileName, buffer, {
-        contentType: file.type,
+      .upload(fileName, bytes, {
+        contentType,
         upsert: false,
-      })
+        duplex: "half",
+      } as Record<string, unknown>)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
