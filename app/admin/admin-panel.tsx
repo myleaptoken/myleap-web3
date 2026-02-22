@@ -33,6 +33,7 @@ import {
   ChevronUp,
   Video,
   UserCheck,
+  Upload,
 } from "lucide-react"
 
 /* ─── Types ─── */
@@ -831,6 +832,7 @@ function TestimonialsTab({
 }) {
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [uploading, setUploading] = useState<"video" | "thumb" | null>(null)
   const router = useRouter()
 
   function openNew() {
@@ -842,6 +844,27 @@ function TestimonialsTab({
       display_order: testimonials.length,
       is_active: true,
     })
+  }
+
+  async function uploadFile(file: File, type: "video" | "thumb") {
+    setUploading(type)
+    try {
+      const fd = new FormData()
+      fd.append("file", file)
+      fd.append("bucket", "testimonials")
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Error al subir archivo")
+      if (type === "video") {
+        setEditing((prev) => prev ? { ...prev, video_url: json.url } : prev)
+      } else {
+        setEditing((prev) => prev ? { ...prev, thumbnail_url: json.url } : prev)
+      }
+    } catch (err) {
+      alert("Error al subir: " + (err instanceof Error ? err.message : "desconocido"))
+    } finally {
+      setUploading(null)
+    }
   }
 
   function save() {
@@ -868,23 +891,28 @@ function TestimonialsTab({
     <div className="space-y-4">
       <SectionHeader title="Video Testimonios" onAdd={openNew} />
 
-      <p className="text-xs text-muted-foreground">
-        Sube los videos al bucket &quot;testimonials&quot; en Supabase Storage y pega la URL publica aqui.
-      </p>
-
       <div className="space-y-2">
+        {testimonials.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            No hay testimonios. Agrega uno con el boton +
+          </p>
+        )}
         {testimonials.map((t) => (
           <div
             key={t.id as string}
             className="flex items-center gap-3 rounded-lg border border-border p-3"
           >
-            {t.thumbnail_url && (
+            {t.thumbnail_url ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={t.thumbnail_url as string}
                 alt={t.name as string}
-                className="h-12 w-9 rounded-lg object-cover border border-border shrink-0"
+                className="h-14 w-10 rounded-lg object-cover border border-border shrink-0"
               />
+            ) : (
+              <div className="h-14 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0 border border-border">
+                <Video className="h-4 w-4 text-muted-foreground" />
+              </div>
             )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground">
@@ -892,6 +920,9 @@ function TestimonialsTab({
               </p>
               <p className="text-xs text-muted-foreground truncate">
                 {(t.subtitle as string) || "Sin subtitulo"}
+              </p>
+              <p className="text-[10px] text-muted-foreground/60 truncate mt-0.5">
+                {(t.video_url as string)?.split("/").pop() || "Sin video"}
               </p>
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full ${t.is_active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
@@ -926,12 +957,86 @@ function TestimonialsTab({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <FieldInput label="Nombre" value={(editing.name as string) ?? ""} onChange={(v) => setEditing({ ...editing, name: v })} />
             <FieldInput label="Subtitulo" value={(editing.subtitle as string) ?? ""} onChange={(v) => setEditing({ ...editing, subtitle: v })} placeholder="Ej: Paciente, Estudiante..." />
-            <FieldInput label="Video URL" value={(editing.video_url as string) ?? ""} onChange={(v) => setEditing({ ...editing, video_url: v })} placeholder="URL del video en Storage" />
-            <FieldInput label="Thumbnail URL" value={(editing.thumbnail_url as string) ?? ""} onChange={(v) => setEditing({ ...editing, thumbnail_url: v })} placeholder="URL de la miniatura" />
             <FieldInput label="Orden" value={String(editing.display_order ?? 0)} onChange={(v) => setEditing({ ...editing, display_order: parseInt(v) || 0 })} type="number" />
           </div>
+
+          {/* Video upload */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">Video</label>
+            {editing.video_url ? (
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2">
+                <Video className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-xs text-muted-foreground truncate flex-1">
+                  {(editing.video_url as string).split("/").pop()}
+                </span>
+                <button
+                  onClick={() => setEditing({ ...editing, video_url: "" })}
+                  className="text-xs text-destructive-foreground hover:underline shrink-0"
+                >
+                  Quitar
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) uploadFile(f, "video")
+                  }}
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  disabled={!!uploading}
+                />
+                <div className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border p-4 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground ${uploading === "video" ? "animate-pulse" : ""}`}>
+                  {uploading === "video" ? "Subiendo video..." : "Haz clic o arrastra un video aqui"}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Thumbnail upload */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">Miniatura (opcional)</label>
+            {editing.thumbnail_url ? (
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={editing.thumbnail_url as string}
+                  alt="Miniatura"
+                  className="h-10 w-7 rounded object-cover border border-border"
+                />
+                <span className="text-xs text-muted-foreground truncate flex-1">
+                  {(editing.thumbnail_url as string).split("/").pop()}
+                </span>
+                <button
+                  onClick={() => setEditing({ ...editing, thumbnail_url: "" })}
+                  className="text-xs text-destructive-foreground hover:underline shrink-0"
+                >
+                  Quitar
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) uploadFile(f, "thumb")
+                  }}
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  disabled={!!uploading}
+                />
+                <div className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border p-3 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground ${uploading === "thumb" ? "animate-pulse" : ""}`}>
+                  {uploading === "thumb" ? "Subiendo imagen..." : "Haz clic o arrastra una imagen"}
+                </div>
+              </div>
+            )}
+          </div>
+
           <ToggleField label="Activo" checked={(editing.is_active as boolean) ?? true} onChange={(v) => setEditing({ ...editing, is_active: v })} />
-          <ActionButton onClick={save} loading={isPending} label="Guardar" icon={Save} />
+          <ActionButton onClick={save} loading={isPending || !!uploading} label={uploading ? "Subiendo..." : "Guardar"} icon={Save} />
         </div>
       )}
     </div>
