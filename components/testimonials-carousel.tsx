@@ -4,8 +4,14 @@ import { useState, useRef, useCallback } from "react"
 import { Play, X, ChevronLeft, ChevronRight } from "lucide-react"
 import type { Testimonial } from "@/lib/types"
 
-function isEmbedUrl(url: string): boolean {
-  return /youtube\.com|youtu\.be|instagram\.com|vimeo\.com/.test(url)
+// Only YouTube and Vimeo reliably support iframe embeds
+function isIframeEmbed(url: string): boolean {
+  return /youtube\.com|youtu\.be|vimeo\.com/.test(url)
+}
+
+// Instagram / TikTok / other social: open externally
+function isExternalOnly(url: string): boolean {
+  return /instagram\.com|tiktok\.com/.test(url)
 }
 
 function getEmbedUrl(url: string): string {
@@ -13,8 +19,6 @@ function getEmbedUrl(url: string): string {
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
   if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`
-  const igMatch = url.match(/instagram\.com\/(?:reel|p)\/([a-zA-Z0-9_-]+)/)
-  if (igMatch) return `https://www.instagram.com/p/${igMatch[1]}/embed/`
   return url
 }
 
@@ -150,7 +154,11 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
 
               {/* Video */}
               <div className="relative w-full bg-black" style={{ aspectRatio: "9/16", maxHeight: "70vh" }}>
-                {isEmbedUrl(active.video_url) ? (
+                {!active.video_url ? (
+                  <div className="flex h-full w-full items-center justify-center text-white/50 text-sm">
+                    Video no disponible
+                  </div>
+                ) : isIframeEmbed(active.video_url) ? (
                   <iframe
                     key={active.id}
                     src={getEmbedUrl(active.video_url)}
@@ -159,6 +167,20 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
                     allowFullScreen
                     title={`Testimonio de ${active.name}`}
                   />
+                ) : isExternalOnly(active.video_url) ? (
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-6">
+                    <p className="text-white/70 text-xs text-center">
+                      Este video se reproduce en la plataforma original
+                    </p>
+                    <a
+                      href={active.video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90 transition-colors"
+                    >
+                      Abrir video
+                    </a>
+                  </div>
                 ) : (
                   <video
                     key={active.id}
