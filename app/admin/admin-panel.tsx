@@ -886,9 +886,19 @@ function TestimonialsTab({
     }
     startTransition(async () => {
       const data = { ...editing }
-      for (const k of ["subtitle", "thumbnail_url"]) {
+      // If no custom thumbnail, try to get YouTube thumbnail
+      if (!data.thumbnail_url || data.thumbnail_url === "") {
+        const ytMatch = (data.video_url as string).match(
+          /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+        )
+        if (ytMatch) {
+          data.thumbnail_url = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`
+        }
+      }
+      for (const k of ["subtitle"]) {
         if (data[k] === "") data[k] = null
       }
+      if (data.thumbnail_url === "") data.thumbnail_url = null
       await upsertTestimonial(data)
       setEditing(null)
       setVideoUrlInput("")
@@ -913,15 +923,20 @@ function TestimonialsTab({
             No hay testimonios. Agrega uno con el boton +
           </p>
         )}
-        {testimonials.map((t) => (
+        {testimonials.map((t) => {
+          const ytThumb = !t.thumbnail_url && t.video_url
+            ? (t.video_url as string).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+            : null
+          const thumbSrc = (t.thumbnail_url as string) || (ytThumb ? `https://img.youtube.com/vi/${ytThumb[1]}/hqdefault.jpg` : "")
+          return (
           <div
             key={t.id as string}
             className="flex items-center gap-3 rounded-lg border border-border p-3"
           >
-            {t.thumbnail_url ? (
+            {thumbSrc ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
-                src={t.thumbnail_url as string}
+                src={thumbSrc}
                 alt={t.name as string}
                 className="h-12 w-16 rounded-lg object-cover border border-border shrink-0"
               />
@@ -946,7 +961,7 @@ function TestimonialsTab({
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
-        ))}
+        )})}
       </div>
 
       {editing && (
@@ -1004,7 +1019,7 @@ function TestimonialsTab({
 
           {/* Thumbnail */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-foreground">Miniatura (opcional)</label>
+            <label className="text-xs font-medium text-foreground">Miniatura <span className="font-normal text-muted-foreground">(opcional - se usa la de YouTube si no subes una)</span></label>
             {editing.thumbnail_url ? (
               <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

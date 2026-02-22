@@ -16,6 +16,14 @@ function getVimeoId(url: string): string | null {
   return m?.[1] ?? null
 }
 
+/** Get a thumbnail URL: use custom if available, otherwise derive from YouTube */
+function getThumbnail(t: Testimonial): string | null {
+  if (t.thumbnail_url) return t.thumbnail_url
+  const ytId = getYouTubeId(t.video_url)
+  if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+  return null
+}
+
 export function TestimonialsCarousel({ testimonials }: { testimonials: Testimonial[] }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -126,14 +134,17 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
               style={{ width: "clamp(120px, 30vw, 160px)" }}
             >
               <div className="relative aspect-[8/5] w-full overflow-hidden rounded-xl border border-border bg-secondary group-hover:border-primary/40 group-hover:shadow-md transition-all duration-200">
-                {t.thumbnail_url ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={t.thumbnail_url} alt={t.name} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-b from-primary/10 to-primary/5">
-                    <Play className="h-5 w-5 text-primary/40" />
-                  </div>
-                )}
+                {(() => {
+                  const thumb = getThumbnail(t)
+                  return thumb ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={thumb} alt={t.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-b from-primary/10 to-primary/5">
+                      <Play className="h-5 w-5 text-primary/40" />
+                    </div>
+                  )
+                })()}
                 {/* Play button */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/80 shadow-lg opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200">
