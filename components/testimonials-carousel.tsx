@@ -122,76 +122,88 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
         )}
       </div>
 
-      {/* Inline video player (not fullscreen) */}
+      {/* Floating modal overlay */}
       {active && (
-        <div className="rounded-xl border border-border bg-card overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
-          {/* Header with nav */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-secondary/30">
-            <div className="flex items-center gap-2">
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={closeVideo}
+            aria-hidden="true"
+          />
+
+          {/* Modal container */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div
+              className="pointer-events-auto relative w-full max-w-sm rounded-2xl border border-border bg-card shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+              role="dialog"
+              aria-label={`Testimonio de ${active.name}`}
+            >
+              {/* Close button */}
               <button
-                onClick={() => navVideo(-1)}
-                disabled={activeIndex === 0}
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                aria-label="Video anterior"
+                onClick={closeVideo}
+                className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                aria-label="Cerrar"
               >
-                <ChevronLeft className="h-3 w-3" />
+                <X className="h-3.5 w-3.5" />
               </button>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-foreground truncate">{active.name}</p>
-                {active.subtitle && (
-                  <p className="text-[10px] text-muted-foreground truncate">{active.subtitle}</p>
+
+              {/* Video */}
+              <div className="relative w-full bg-black" style={{ aspectRatio: "9/16", maxHeight: "70vh" }}>
+                {isEmbedUrl(active.video_url) ? (
+                  <iframe
+                    key={active.id}
+                    src={getEmbedUrl(active.video_url)}
+                    className="h-full w-full"
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    title={`Testimonio de ${active.name}`}
+                  />
+                ) : (
+                  <video
+                    key={active.id}
+                    src={active.video_url}
+                    controls
+                    autoPlay
+                    playsInline
+                    className="h-full w-full object-contain"
+                  >
+                    Tu navegador no soporta video.
+                  </video>
                 )}
               </div>
-              <button
-                onClick={() => navVideo(1)}
-                disabled={activeIndex === testimonials.length - 1}
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                aria-label="Video siguiente"
-              >
-                <ChevronRight className="h-3 w-3" />
-              </button>
+
+              {/* Bottom bar: info + nav */}
+              <div className="flex items-center justify-between gap-2 px-3 py-2.5 bg-card border-t border-border">
+                <button
+                  onClick={() => navVideo(-1)}
+                  disabled={activeIndex === 0}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Video anterior"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </button>
+
+                <div className="flex-1 min-w-0 text-center">
+                  <p className="text-xs font-semibold text-foreground truncate">{active.name}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {active.subtitle ? `${active.subtitle} \u00B7 ` : ""}
+                    {(activeIndex ?? 0) + 1}/{testimonials.length}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => navVideo(1)}
+                  disabled={activeIndex === testimonials.length - 1}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Video siguiente"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
-            <button
-              onClick={closeVideo}
-              className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Cerrar"
-            >
-              <X className="h-3 w-3" />
-            </button>
           </div>
-
-          {/* Video */}
-          <div className="relative w-full bg-black" style={{ aspectRatio: "9/16", maxHeight: "60vh" }}>
-            {isEmbedUrl(active.video_url) ? (
-              <iframe
-                key={active.id}
-                src={getEmbedUrl(active.video_url)}
-                className="h-full w-full"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
-                title={`Testimonio de ${active.name}`}
-              />
-            ) : (
-              <video
-                key={active.id}
-                src={active.video_url}
-                controls
-                autoPlay
-                playsInline
-                className="h-full w-full object-contain"
-              >
-                Tu navegador no soporta video.
-              </video>
-            )}
-          </div>
-
-          {/* Counter */}
-          <div className="px-3 py-1.5 border-t border-border bg-secondary/30 text-center">
-            <span className="text-[10px] text-muted-foreground">
-              {(activeIndex ?? 0) + 1} / {testimonials.length}
-            </span>
-          </div>
-        </div>
+        </>
       )}
     </div>
   )
