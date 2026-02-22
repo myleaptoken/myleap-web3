@@ -833,6 +833,8 @@ function TestimonialsTab({
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
   const [isPending, startTransition] = useTransition()
   const [uploading, setUploading] = useState<"video" | "thumb" | null>(null)
+  const [uploadProgress, setUploadProgress] = useState("")
+  const [compressionPercent, setCompressionPercent] = useState(0)
   const router = useRouter()
 
   function openNew() {
@@ -848,9 +850,27 @@ function TestimonialsTab({
 
   async function uploadFile(file: File, type: "video" | "thumb") {
     setUploading(type)
+    setUploadProgress("")
+    setCompressionPercent(0)
     try {
+      let fileToUpload = file
+      const sizeMB = file.size / (1024 * 1024)
+
+      // Compress video if larger than 90MB
+      if (type === "video" && sizeMB > 90) {
+        setUploadProgress(`Video de ${sizeMB.toFixed(0)}MB detectado, comprimiendo...`)
+        const { compressVideo } = await import("@/lib/compress-video")
+        fileToUpload = await compressVideo(file, (p) => {
+          setUploadProgress(p.message)
+          setCompressionPercent(p.percent)
+        })
+      }
+
+      setUploadProgress("Subiendo archivo...")
+      setCompressionPercent(0)
+
       const fd = new FormData()
-      fd.append("file", file)
+      fd.append("file", fileToUpload)
       fd.append("bucket", "testimonials")
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
       if (!res.ok) {
@@ -870,10 +890,13 @@ function TestimonialsTab({
       } else {
         setEditing((prev) => prev ? { ...prev, thumbnail_url: json.url } : prev)
       }
+      setUploadProgress("")
     } catch (err) {
       alert("Error al subir: " + (err instanceof Error ? err.message : "desconocido"))
+      setUploadProgress("")
     } finally {
       setUploading(null)
+      setCompressionPercent(0)
     }
   }
 
@@ -987,19 +1010,39 @@ function TestimonialsTab({
                 </button>
               </div>
             ) : (
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) uploadFile(f, "video")
-                  }}
-                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                  disabled={!!uploading}
-                />
-                <div className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border p-4 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground ${uploading === "video" ? "animate-pulse" : ""}`}>
-                  {uploading === "video" ? "Subiendo video..." : "Haz clic o arrastra un video aqui"}
+              <div className="space-y-2">
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) uploadFile(f, "video")
+                    }}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    disabled={!!uploading}
+                  />
+                  <div className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border p-4 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground ${uploading === "video" ? "border-primary/40" : ""}`}>
+                    {uploading === "video" ? (
+                      <>
+                        <span className="animate-pulse">{uploadProgress || "Procesando..."}</span>
+                        {compressionPercent > 0 && (
+                          <div className="w-full max-w-48 mt-1.5 rounded-full bg-secondary h-1.5 overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full transition-all duration-300"
+                              style={{ width: `${compressionPercent}%` }}
+                            />
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-5 w-5 mb-1" />
+                        <span>Haz clic o arrastra un video aqui</span>
+                        <span className="text-[10px] text-muted-foreground/60">Videos grandes se comprimen automaticamente</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
