@@ -19,106 +19,117 @@ import {
   CheckCircle2,
   Sparkles,
 } from "lucide-react"
+import type { Testimonial } from "@/lib/types"
+import { TestimonialsCarousel } from "@/components/testimonials-carousel"
+
+/* ── Icon map for dynamic icons from DB ── */
+const iconMap: Record<string, React.ReactNode> = {
+  Zap: <Zap className="h-5 w-5" />,
+  Users: <Users className="h-5 w-5" />,
+  Gift: <Gift className="h-5 w-5" />,
+  TrendingUp: <TrendingUp className="h-5 w-5" />,
+  Star: <Star className="h-5 w-5" />,
+  Crown: <Crown className="h-5 w-5" />,
+  Gem: <Gem className="h-5 w-5" />,
+  Rocket: <Rocket className="h-5 w-5" />,
+  Shield: <Shield className="h-5 w-5" />,
+  Sparkles: <Sparkles className="h-5 w-5" />,
+}
+
+/* ── Types ── */
+interface CrowdfundingConfig {
+  hero_badge: string
+  hero_title: string
+  hero_description: string
+  hero_cta_text: string
+  hero_cta_url: string
+  hero_stats: { value: string; label: string }[]
+  what_is_title: string
+  what_is_points: { icon: string; title: string; desc: string }[]
+  tiers: { name: string; price: string; tokens: string; icon: string; popular: boolean; benefits: string[] }[]
+  tiers_subtitle: string
+  how_it_works: { num: string; title: string; desc: string }[]
+  faq_items: { q: string; a: string }[]
+  final_cta_title: string
+  final_cta_description: string
+  final_cta_primary_text: string
+  final_cta_primary_url: string
+  final_cta_secondary_text: string
+  final_cta_secondary_url: string
+}
+
+interface Props {
+  config: Record<string, unknown> | null
+  testimonials: Testimonial[]
+}
 
 /* ══════════════════════════════════════
    HERO
    ══════════════════════════════════════ */
-function Hero() {
+function Hero({ c }: { c: CrowdfundingConfig }) {
   return (
     <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-10">
-      {/* Decorative glow */}
       <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-primary/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
 
       <div className="relative flex flex-col items-center text-center gap-5">
-        {/* Badge */}
         <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/30 px-3 py-1 text-xs font-bold text-primary uppercase tracking-wider">
           <Rocket className="h-3 w-3" />
-          Crowdfunding Abierto
+          {c.hero_badge}
         </span>
 
-        {/* Logo mark */}
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/30">
           <Zap className="h-8 w-8 text-primary" />
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-black font-mono tracking-tight text-balance title-shimmer-text">
-          TOKEN LEAP
+          {c.hero_title}
         </h1>
         <p className="max-w-md text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty">
-          Sumate al movimiento que esta transformando el bienestar.
-          Adquiri tokens LEAP y accede a beneficios exclusivos de la comunidad MY LEAP,
-          potenciada por Metodo ONE.
+          {c.hero_description}
         </p>
 
-        {/* Quick stats */}
-        <div className="flex items-center gap-4 sm:gap-8 mt-2">
-          <QuickStat value="500+" label="Leapers" />
-          <div className="h-8 w-px bg-border" />
-          <QuickStat value="12" label="Cursos" />
-          <div className="h-8 w-px bg-border" />
-          <QuickStat value="3" label="Paises" />
-        </div>
+        {c.hero_stats.length > 0 && (
+          <div className="flex items-center gap-4 sm:gap-8 mt-2">
+            {c.hero_stats.map((s, i) => (
+              <div key={i} className="flex items-center gap-4 sm:gap-8">
+                {i > 0 && <div className="h-8 w-px bg-border" />}
+                <div className="flex flex-col items-center">
+                  <span className="text-lg sm:text-xl font-bold text-foreground font-mono">{s.value}</span>
+                  <span className="text-[11px] text-muted-foreground">{s.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <a
-          href="#tiers"
+          href={c.hero_cta_url}
           className="mt-2 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-300"
         >
           <Zap className="h-4 w-4" />
-          Quiero mis Tokens LEAP
+          {c.hero_cta_text}
         </a>
       </div>
     </section>
   )
 }
 
-function QuickStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="flex flex-col items-center">
-      <span className="text-lg sm:text-xl font-bold text-foreground font-mono">{value}</span>
-      <span className="text-[11px] text-muted-foreground">{label}</span>
-    </div>
-  )
-}
-
 /* ══════════════════════════════════════
    WHAT IS TOKEN LEAP
    ══════════════════════════════════════ */
-function WhatIsSection() {
-  const points = [
-    {
-      icon: <Zap className="h-5 w-5 text-primary" />,
-      title: "Acceso a Cursos y Talleres",
-      desc: "Usa tus tokens para inscribirte en cursos de Metodo ONE, talleres de energia y sesiones exclusivas.",
-    },
-    {
-      icon: <Users className="h-5 w-5 text-primary" />,
-      title: "Comunidad Leapers",
-      desc: "Forma parte de una red de personas comprometidas con su crecimiento personal y bienestar integral.",
-    },
-    {
-      icon: <Gift className="h-5 w-5 text-primary" />,
-      title: "Beneficios Crecientes",
-      desc: "Cuantos mas tokens tengas, mayores son los beneficios: descuentos, acceso VIP, sesiones privadas y mas.",
-    },
-    {
-      icon: <TrendingUp className="h-5 w-5 text-primary" />,
-      title: "Valor Creciente",
-      desc: "Los tokens LEAP son limitados. A medida que la comunidad crece, el valor de tus tokens se potencia.",
-    },
-  ]
-
+function WhatIsSection({ c }: { c: CrowdfundingConfig }) {
   return (
     <section className="space-y-5">
-      <SectionTitle icon={<Sparkles className="h-4 w-4" />} label="Que es Token LEAP" />
+      <SectionTitle icon={<Sparkles className="h-4 w-4" />} label={c.what_is_title} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {points.map((p) => (
+        {c.what_is_points.map((p) => (
           <div
             key={p.title}
             className="flex gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition-colors"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              {p.icon}
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              {iconMap[p.icon] ?? <Zap className="h-5 w-5" />}
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground">{p.title}</h3>
@@ -134,95 +145,15 @@ function WhatIsSection() {
 /* ══════════════════════════════════════
    INVESTMENT TIERS
    ══════════════════════════════════════ */
-const tiers = [
-  {
-    name: "Explorer",
-    price: "$100 USD",
-    tokens: "100 LEAP",
-    icon: <Zap className="h-5 w-5" />,
-    color: "border-primary/30 bg-primary/5",
-    benefits: [
-      "Acceso a la comunidad Leapers",
-      "1 curso basico de Metodo ONE",
-      "Canal exclusivo de contenido",
-      "Badge de Explorer en tu perfil",
-    ],
-  },
-  {
-    name: "Pioneer",
-    price: "$500 USD",
-    tokens: "600 LEAP",
-    icon: <Star className="h-5 w-5" />,
-    color: "border-primary/50 bg-primary/10",
-    popular: true,
-    benefits: [
-      "Todo lo de Explorer",
-      "3 cursos a eleccion",
-      "1 sesion privada mensual",
-      "Descuento 20% en eventos",
-      "Acceso anticipado a nuevos cursos",
-      "Badge de Pioneer en tu perfil",
-    ],
-  },
-  {
-    name: "Founder",
-    price: "$1,000 USD",
-    tokens: "1,500 LEAP",
-    icon: <Crown className="h-5 w-5" />,
-    color: "border-chart-5/50 bg-chart-5/10",
-    benefits: [
-      "Todo lo de Pioneer",
-      "Acceso ilimitado a cursos",
-      "2 sesiones privadas mensuales",
-      "Participacion en decisiones de la comunidad",
-      "Invitacion a retiros presenciales",
-      "Mencion como Fundador/a",
-    ],
-  },
-  {
-    name: "Visionary",
-    price: "$5,000 USD",
-    tokens: "10,000 LEAP",
-    icon: <Gem className="h-5 w-5" />,
-    color: "border-chart-4/50 bg-chart-4/10",
-    benefits: [
-      "Todo lo de Founder",
-      "Co-creacion de contenido con el equipo",
-      "Sesiones ilimitadas privadas",
-      "Porcentaje de ingresos recurrentes",
-      "Asiento en el consejo Leapers",
-      "Experiencia VIP en todos los eventos",
-      "Marca personal dentro del ecosistema",
-    ],
-  },
-  {
-    name: "Legendary",
-    price: "$10,000+ USD",
-    tokens: "25,000+ LEAP",
-    icon: <Rocket className="h-5 w-5" />,
-    color: "border-primary bg-primary/15",
-    benefits: [
-      "Todo lo de Visionary",
-      "Partnership estrategico con MY LEAP",
-      "Revenue share del ecosistema",
-      "Tu propia linea de cursos/talleres",
-      "Acceso total a infraestructura y marca",
-      "Reunion trimestral con founders",
-      "Legado permanente en la comunidad",
-    ],
-  },
-]
-
-function TiersSection() {
+function TiersSection({ c }: { c: CrowdfundingConfig }) {
   return (
     <section id="tiers" className="space-y-5 scroll-mt-8">
       <SectionTitle icon={<Crown className="h-4 w-4" />} label="Niveles de Inversion" />
       <p className="text-xs sm:text-sm text-muted-foreground text-center max-w-md mx-auto leading-relaxed">
-        Elegi el nivel que mas resuene con vos. Cada tier incluye todos los beneficios del anterior
-        y suma ventajas exclusivas.
+        {c.tiers_subtitle}
       </p>
       <div className="flex flex-col gap-3">
-        {tiers.map((tier) => (
+        {c.tiers.map((tier) => (
           <TierCard key={tier.name} tier={tier} />
         ))}
       </div>
@@ -230,35 +161,26 @@ function TiersSection() {
   )
 }
 
-function TierCard({
-  tier,
-}: {
-  tier: (typeof tiers)[number]
-}) {
+function TierCard({ tier }: { tier: CrowdfundingConfig["tiers"][number] }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div
-      className={`relative rounded-xl border ${tier.color} p-4 sm:p-5 transition-all duration-300 hover:shadow-md`}
-    >
+    <div className={`relative rounded-xl border p-4 sm:p-5 transition-all duration-300 hover:shadow-md ${tier.popular ? "border-primary/50 bg-primary/10" : "border-border bg-card"}`}>
       {tier.popular && (
         <span className="absolute -top-2.5 right-4 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold text-primary-foreground uppercase tracking-wider">
           Popular
         </span>
       )}
-
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          {tier.icon}
+          {iconMap[tier.icon] ?? <Zap className="h-5 w-5" />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
             <h3 className="text-base font-bold text-foreground">{tier.name}</h3>
             <span className="text-xs font-mono text-muted-foreground">{tier.tokens}</span>
           </div>
-          <p className="text-lg sm:text-xl font-black text-primary font-mono mt-0.5">
-            {tier.price}
-          </p>
+          <p className="text-lg sm:text-xl font-black text-primary font-mono mt-0.5">{tier.price}</p>
         </div>
         <button
           onClick={() => setExpanded(!expanded)}
@@ -268,7 +190,6 @@ function TierCard({
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </button>
       </div>
-
       {expanded && (
         <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5 animate-fade-up">
           {tier.benefits.map((b) => (
@@ -278,7 +199,7 @@ function TierCard({
             </div>
           ))}
           <a
-            href="https://wa.me/5491100000000?text=Hola!%20Quiero%20adquirir%20tokens%20LEAP%20nivel%20"
+            href={`https://wa.me/5491100000000?text=Hola!%20Quiero%20adquirir%20tokens%20LEAP%20nivel%20${encodeURIComponent(tier.name)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] transition-all"
@@ -295,19 +216,12 @@ function TierCard({
 /* ══════════════════════════════════════
    HOW IT WORKS
    ══════════════════════════════════════ */
-function HowItWorks() {
-  const steps = [
-    { num: "1", title: "Elegi tu nivel", desc: "Selecciona el tier que mejor se ajuste a tu vision." },
-    { num: "2", title: "Contactanos", desc: "Coordina el pago seguro via WhatsApp o email." },
-    { num: "3", title: "Recibi tus tokens", desc: "Los tokens LEAP se acreditan en tu cuenta." },
-    { num: "4", title: "Disfruta los beneficios", desc: "Accede a cursos, sesiones y la comunidad Leapers." },
-  ]
-
+function HowItWorks({ c }: { c: CrowdfundingConfig }) {
   return (
     <section className="space-y-5">
       <SectionTitle icon={<Shield className="h-4 w-4" />} label="Como Funciona" />
       <div className="grid grid-cols-2 gap-3">
-        {steps.map((s) => (
+        {c.how_it_works.map((s) => (
           <div key={s.num} className="rounded-xl border border-border bg-card p-4 text-center">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary font-mono">
               {s.num}
@@ -322,90 +236,15 @@ function HowItWorks() {
 }
 
 /* ══════════════════════════════════════
-   SOCIAL PROOF
-   ══════════════════════════════════════ */
-function SocialProof() {
-  const quotes = [
-    {
-      text: "MY LEAP cambio mi forma de ver la energia. Los tokens me dieron acceso a una comunidad increible.",
-      name: "Maria C.",
-      role: "Pioneer Leaper",
-    },
-    {
-      text: "Invertir en tokens LEAP fue la mejor decision. Los cursos de Metodo ONE son transformadores.",
-      name: "Lucas R.",
-      role: "Founder Leaper",
-    },
-    {
-      text: "La comunidad Leapers es unica. El valor que recibi supera con creces mi inversion.",
-      name: "Valentina S.",
-      role: "Explorer Leaper",
-    },
-  ]
-
-  return (
-    <section className="space-y-5">
-      <SectionTitle icon={<Users className="h-4 w-4" />} label="La Comunidad Habla" />
-      <div className="flex flex-col gap-3">
-        {quotes.map((q) => (
-          <div key={q.name} className="rounded-xl border border-border bg-card p-4">
-            <p className="text-xs text-muted-foreground leading-relaxed italic">
-              {`"${q.text}"`}
-            </p>
-            <div className="mt-2 flex items-center gap-2">
-              <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
-                {q.name[0]}
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-foreground">{q.name}</p>
-                <p className="text-[10px] text-muted-foreground">{q.role}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-/* ══════════════════════════════════════
    FAQ
    ══════════════════════════════════════ */
-const faqItems = [
-  {
-    q: "Que puedo hacer con los tokens LEAP?",
-    a: "Los tokens te dan acceso a cursos, talleres, sesiones privadas, eventos presenciales y beneficios exclusivos dentro del ecosistema MY LEAP. Cuanto mayor sea tu nivel, mas beneficios desbloqueás.",
-  },
-  {
-    q: "Como adquiero los tokens?",
-    a: "Elegis tu nivel de inversion, nos contactas por WhatsApp o email, coordinas el pago y recibis tus tokens acreditados en tu cuenta de la plataforma.",
-  },
-  {
-    q: "Puedo comprar mas tokens despues?",
-    a: "Si, podes subir de nivel en cualquier momento. Solo pagas la diferencia entre tu tier actual y el nuevo.",
-  },
-  {
-    q: "Los tokens tienen vencimiento?",
-    a: "No. Tus tokens LEAP no vencen. Son tuyos mientras seas parte de la comunidad.",
-  },
-  {
-    q: "Que pasa si la comunidad crece?",
-    a: "Los tokens son limitados. A medida que la comunidad crece, los beneficios y el valor del ecosistema se potencian para todos los holders.",
-  },
-  {
-    q: "Puedo participar en la toma de decisiones?",
-    a: "Desde el nivel Founder, tenes voz y voto en decisiones clave de la comunidad, nuevos cursos y direccion del proyecto.",
-  },
-]
-
-function FAQSection() {
+function FAQSection({ c }: { c: CrowdfundingConfig }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
-
   return (
     <section className="space-y-5">
       <SectionTitle icon={<Shield className="h-4 w-4" />} label="Preguntas Frecuentes" />
       <div className="flex flex-col gap-2">
-        {faqItems.map((item, i) => (
+        {c.faq_items.map((item, i) => (
           <div key={i} className="rounded-xl border border-border bg-card overflow-hidden">
             <button
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
@@ -433,33 +272,32 @@ function FAQSection() {
 /* ══════════════════════════════════════
    FINAL CTA
    ══════════════════════════════════════ */
-function FinalCTA() {
+function FinalCTA({ c }: { c: CrowdfundingConfig }) {
   return (
     <section className="relative overflow-hidden rounded-2xl border border-primary/30 bg-primary/5 p-6 sm:p-8 text-center">
       <div className="pointer-events-none absolute -top-16 -right-16 h-32 w-32 rounded-full bg-primary/15 blur-3xl" />
       <h2 className="text-xl sm:text-2xl font-black font-mono tracking-tight title-shimmer-text">
-        TU SALTO EMPIEZA HOY
+        {c.final_cta_title}
       </h2>
       <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-        Unite a la comunidad que esta redefiniendo el bienestar.
-        Cada token LEAP es una inversion en vos y en el crecimiento colectivo.
+        {c.final_cta_description}
       </p>
       <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
         <a
-          href="#tiers"
+          href={c.final_cta_primary_url}
           className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-300"
         >
           <Rocket className="h-4 w-4" />
-          Ver Niveles de Inversion
+          {c.final_cta_primary_text}
         </a>
         <a
-          href="https://wa.me/5491100000000?text=Hola!%20Quiero%20info%20sobre%20Token%20LEAP"
+          href={c.final_cta_secondary_url}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold text-foreground hover:border-primary/50 transition-colors"
         >
           <ExternalLink className="h-4 w-4" />
-          Hablar con el Equipo
+          {c.final_cta_secondary_text}
         </a>
       </div>
     </section>
@@ -483,12 +321,32 @@ function SectionTitle({ icon, label }: { icon: React.ReactNode; label: string })
 }
 
 /* ══════════════════════════════════════
-   MAIN PAGE
+   MAIN
    ══════════════════════════════════════ */
-export function TokenLeapContent() {
+export function TokenLeapContent({ config, testimonials }: Props) {
+  const c: CrowdfundingConfig = {
+    hero_badge: (config?.hero_badge as string) ?? "Crowdfunding Abierto",
+    hero_title: (config?.hero_title as string) ?? "TOKEN LEAP",
+    hero_description: (config?.hero_description as string) ?? "",
+    hero_cta_text: (config?.hero_cta_text as string) ?? "Quiero mis Tokens LEAP",
+    hero_cta_url: (config?.hero_cta_url as string) ?? "#tiers",
+    hero_stats: (config?.hero_stats as CrowdfundingConfig["hero_stats"]) ?? [],
+    what_is_title: (config?.what_is_title as string) ?? "Que es Token LEAP",
+    what_is_points: (config?.what_is_points as CrowdfundingConfig["what_is_points"]) ?? [],
+    tiers: (config?.tiers as CrowdfundingConfig["tiers"]) ?? [],
+    tiers_subtitle: (config?.tiers_subtitle as string) ?? "",
+    how_it_works: (config?.how_it_works as CrowdfundingConfig["how_it_works"]) ?? [],
+    faq_items: (config?.faq_items as CrowdfundingConfig["faq_items"]) ?? [],
+    final_cta_title: (config?.final_cta_title as string) ?? "TU SALTO EMPIEZA HOY",
+    final_cta_description: (config?.final_cta_description as string) ?? "",
+    final_cta_primary_text: (config?.final_cta_primary_text as string) ?? "Ver Niveles",
+    final_cta_primary_url: (config?.final_cta_primary_url as string) ?? "#tiers",
+    final_cta_secondary_text: (config?.final_cta_secondary_text as string) ?? "Hablar con el Equipo",
+    final_cta_secondary_url: (config?.final_cta_secondary_url as string) ?? "#",
+  }
+
   return (
     <main className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center px-4 pb-8 pt-6 gap-8">
-      {/* Back navigation */}
       <div className="w-full">
         <Link
           href="/"
@@ -499,15 +357,22 @@ export function TokenLeapContent() {
         </Link>
       </div>
 
-      <Hero />
-      <WhatIsSection />
-      <TiersSection />
-      <HowItWorks />
-      <SocialProof />
-      <FAQSection />
-      <FinalCTA />
+      <Hero c={c} />
+      <WhatIsSection c={c} />
+      <TiersSection c={c} />
+      <HowItWorks c={c} />
 
-      {/* Footer */}
+      {/* Testimonials - shared carousel from main page */}
+      {testimonials.length > 0 && (
+        <section className="w-full space-y-5">
+          <SectionTitle icon={<Users className="h-4 w-4" />} label="La Comunidad Habla" />
+          <TestimonialsCarousel testimonials={testimonials} />
+        </section>
+      )}
+
+      <FAQSection c={c} />
+      <FinalCTA c={c} />
+
       <footer className="w-full text-center pt-4 pb-2 border-t border-border">
         <p className="text-[10px] text-muted-foreground">
           MY LEAP &middot; Potenciado por Metodo ONE

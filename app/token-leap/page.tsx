@@ -1,4 +1,7 @@
 import type { Metadata } from "next"
+import { getCrowdfundingConfig } from "@/lib/data"
+import { createClient } from "@/lib/supabase/server"
+import type { Testimonial } from "@/lib/types"
 import { TokenLeapContent } from "./token-leap-content"
 
 export const metadata: Metadata = {
@@ -12,6 +15,19 @@ export const metadata: Metadata = {
   },
 }
 
-export default function TokenLeapPage() {
-  return <TokenLeapContent />
+export default async function TokenLeapPage() {
+  const [config, supabase] = await Promise.all([
+    getCrowdfundingConfig(),
+    createClient(),
+  ])
+
+  const { data: testimonialsData } = await supabase
+    .from("testimonials")
+    .select("*")
+    .eq("is_active", true)
+    .order("display_order")
+
+  const testimonials = (testimonialsData as Testimonial[]) ?? []
+
+  return <TokenLeapContent config={config} testimonials={testimonials} />
 }

@@ -59,3 +59,13 @@ export async function getPageData(): Promise<PageData> {
 
   return { profile, socialLinks, ctaLinks, featuredLinks, facilitators, testimonials }
 }
+
+export async function getCrowdfundingConfig() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("crowdfunding_config")
+    .select("*")
+    .limit(1)
+    .single()
+  return data as Record<string, unknown> | null
+}
