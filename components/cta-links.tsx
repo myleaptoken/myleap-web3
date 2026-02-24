@@ -15,7 +15,6 @@ import {
 import type { CTALinkWithModal, Facilitator } from "@/lib/types"
 import { DynamicModal } from "@/components/cta-modals"
 
-/* Map icon_name from DB to a Lucide component */
 const iconMap: Record<string, React.ReactNode> = {
   Heart: <Heart className="h-5 w-5" />,
   Sparkles: <Sparkles className="h-5 w-5" />,
@@ -45,7 +44,6 @@ export function CTALinks({
   facilitators: Facilitator[]
 }) {
   const [openModalKey, setOpenModalKey] = useState<string | null>(null)
-
   const activeLink = links.find((l) => l.modal_key === openModalKey) ?? null
 
   return (
@@ -61,40 +59,28 @@ export function CTALinks({
         ))}
       </div>
 
-      {/* Single dynamic modal driven by DB data */}
       <DynamicModal
         link={activeLink}
         facilitators={facilitators}
-        open={openModalKey !== null}
+        open={openModalKey !== null && openModalKey !== "navigate"}
         onOpenChange={(v) => !v && setOpenModalKey(null)}
       />
     </>
   )
 }
 
-function CTAButton({
+/* ─── Shared inner content for CTA buttons ─── */
+function CTAInner({
   link,
-  index,
-  onOpen,
+  isHovered,
+  variant,
 }: {
   link: CTALinkWithModal
-  index: number
-  onOpen: () => void
+  isHovered: boolean
+  variant: string
 }) {
-  const [isHovered, setIsHovered] = useState(false)
-  const variant = link.variant || "primary"
-  const isNavigate = link.modal_key === "navigate" && link.url
-
-  const className = `
-    group relative flex items-center gap-4 rounded-xl border p-4 sm:p-5
-    transition-all duration-300 ease-out animate-fade-up text-left cursor-pointer
-    hover:scale-[1.02] hover:-translate-y-0.5
-    ${variantStyles[variant] ?? variantStyles.primary}
-  `
-
-  const inner = (
+  return (
     <>
-      {/* Shimmer effect on hover */}
       {isHovered && variant === "primary" && (
         <div className="absolute inset-0 rounded-xl overflow-hidden">
           <div
@@ -108,19 +94,17 @@ function CTAButton({
         </div>
       )}
 
-      {/* Icon */}
       <div
         className={`
-        relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg
-        transition-all duration-300
-        ${variant === "primary" ? "bg-primary-foreground/15" : "bg-primary/10"}
-        group-hover:scale-110
-      `}
+          relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg
+          transition-all duration-300
+          ${variant === "primary" ? "bg-primary-foreground/15" : "bg-primary/10"}
+          group-hover:scale-110
+        `}
       >
         {iconMap[link.icon_name] ?? <Heart className="h-5 w-5" />}
       </div>
 
-      {/* Text */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm sm:text-base truncate">
@@ -139,11 +123,58 @@ function CTAButton({
         )}
       </div>
 
-      {/* Arrow */}
       <ChevronRight
         className="h-4 w-4 shrink-0 opacity-40 transition-all duration-300
-        group-hover:opacity-100 group-hover:translate-x-0.5"
+          group-hover:opacity-100 group-hover:translate-x-0.5"
       />
+    </>
+  )
+}
+
+function CTAButton({
+  link,
+  index,
+  onOpen,
+}: {
+  link: CTALinkWithModal
+  index: number
+  onOpen: () => void
+}) {
+  const [isHovered, setIsHovered] = useState(false)
+  const variant = link.variant || "primary"
+  const isNavigate = link.modal_key === "navigate" && link.url
+
+  const classes = `
+    group relative flex items-center gap-4 rounded-xl border p-4 sm:p-5
+    transition-all duration-300 ease-out animate-fade-up text-left cursor-pointer
+    hover:scale-[1.02] hover:-translate-y-0.5
+    ${variantStyles[variant] ?? variantStyles.primary}
+  `
+
+  if (isNavigate) {
+    return (
+      <Link
+        href={link.url!}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={classes}
+        style={{ animationDelay: `${0.05 * index + 0.3}s` }}
+      >
+        <CTAInner link={link} isHovered={isHovered} variant={variant} />
+      </Link>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={classes}
+      style={{ animationDelay: `${0.05 * index + 0.3}s` }}
+    >
+      <CTAInner link={link} isHovered={isHovered} variant={variant} />
     </button>
   )
 }
