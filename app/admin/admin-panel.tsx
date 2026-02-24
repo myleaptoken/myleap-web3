@@ -134,7 +134,7 @@ export function AdminPanel({ data }: { data: AdminData }) {
           {activeTab === "preusers" && <PreUsersTab preUsers={data.preUsers} />}
           {activeTab === "crowdfunding" && <CrowdfundingTab config={data.crowdfundingConfig} />}
         </div>
-      )}
+      </div>
     </div>
   )
 }
