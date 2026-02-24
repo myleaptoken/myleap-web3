@@ -78,8 +78,9 @@ function Hero({ c }: { c: CrowdfundingConfig }) {
           {c.hero_badge}
         </span>
 
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/30">
-          <Zap className="h-8 w-8 text-primary" />
+        <div className="h-16 w-16 overflow-hidden rounded-2xl border border-primary/30 shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/avatar.png" alt="MY LEAP" className="h-full w-full object-cover" />
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-black font-mono tracking-tight text-balance title-shimmer-text">
@@ -218,16 +219,16 @@ function TierCard({ tier }: { tier: CrowdfundingConfig["tiers"][number] }) {
    ══════════════════════════════════════ */
 function HowItWorks({ c }: { c: CrowdfundingConfig }) {
   return (
-    <section className="space-y-5">
+    <section className="space-y-4">
       <SectionTitle icon={<Shield className="h-4 w-4" />} label="Como Funciona" />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar">
         {c.how_it_works.map((s) => (
-          <div key={s.num} className="rounded-xl border border-border bg-card p-4 text-center">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary font-mono">
+          <div key={s.num} className="flex-1 min-w-0 rounded-lg border border-border bg-card px-2.5 py-3 text-center">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary font-mono">
               {s.num}
             </span>
-            <h3 className="mt-2 text-xs font-semibold text-foreground">{s.title}</h3>
-            <p className="mt-0.5 text-[11px] text-muted-foreground leading-relaxed">{s.desc}</p>
+            <h3 className="mt-1.5 text-[11px] font-semibold text-foreground leading-tight">{s.title}</h3>
+            <p className="mt-0.5 text-[10px] text-muted-foreground leading-snug">{s.desc}</p>
           </div>
         ))}
       </div>
