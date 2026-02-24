@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import {
   BookOpen,
   MessageCircle,
@@ -9,6 +10,7 @@ import {
   ChevronRight,
   Sparkles,
   Star as StarIcon,
+  Rocket,
 } from "lucide-react"
 import type { CTALinkWithModal, Facilitator } from "@/lib/types"
 import { DynamicModal } from "@/components/cta-modals"
@@ -21,6 +23,7 @@ const iconMap: Record<string, React.ReactNode> = {
   BookOpen: <BookOpen className="h-5 w-5" />,
   MessageCircle: <MessageCircle className="h-5 w-5" />,
   Star: <StarIcon className="h-5 w-5" />,
+  Rocket: <Rocket className="h-5 w-5" />,
 }
 
 const variantStyles: Record<string, string> = {
@@ -80,21 +83,17 @@ function CTAButton({
 }) {
   const [isHovered, setIsHovered] = useState(false)
   const variant = link.variant || "primary"
+  const isNavigate = link.modal_key === "navigate" && link.url
 
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`
-        group relative flex items-center gap-4 rounded-xl border p-4 sm:p-5
-        transition-all duration-300 ease-out animate-fade-up text-left cursor-pointer
-        hover:scale-[1.02] hover:-translate-y-0.5
-        ${variantStyles[variant] ?? variantStyles.primary}
-      `}
-      style={{ animationDelay: `${0.05 * index + 0.3}s` }}
-    >
+  const className = `
+    group relative flex items-center gap-4 rounded-xl border p-4 sm:p-5
+    transition-all duration-300 ease-out animate-fade-up text-left cursor-pointer
+    hover:scale-[1.02] hover:-translate-y-0.5
+    ${variantStyles[variant] ?? variantStyles.primary}
+  `
+
+  const inner = (
+    <>
       {/* Shimmer effect on hover */}
       {isHovered && variant === "primary" && (
         <div className="absolute inset-0 rounded-xl overflow-hidden">

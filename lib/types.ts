@@ -37,6 +37,7 @@ export interface CTALink {
   featured_tag: string | null
   featured_stat_1_label: string | null
   featured_stat_2_label: string | null
+  url: string | null
 }
 
 export interface CTAModalContent {
