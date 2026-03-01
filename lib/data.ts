@@ -69,3 +69,13 @@ export async function getCrowdfundingConfig() {
     .single()
   return data as Record<string, unknown> | null
 }
+
+export async function getCursosOneConfig() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("cursos_one_config")
+    .select("*")
+    .limit(1)
+    .single()
+  return data as Record<string, unknown> | null
+}

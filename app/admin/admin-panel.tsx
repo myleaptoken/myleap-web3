@@ -16,6 +16,7 @@ import {
   upsertTestimonial,
   deleteTestimonial,
   updateCrowdfundingConfig,
+  updateCursosOneConfig,
 } from "./actions"
 import {
   User,
@@ -36,6 +37,7 @@ import {
   UserCheck,
   CheckCircle2,
   Rocket,
+  BookOpen,
 } from "lucide-react"
 
 /* ─── Types ─── */
@@ -49,6 +51,7 @@ interface AdminData {
   testimonials: Record<string, unknown>[]
   preUsers: Record<string, unknown>[]
   crowdfundingConfig: Record<string, unknown> | null
+  cursosOneConfig: Record<string, unknown> | null
 }
 
 const tabs = [
@@ -61,6 +64,7 @@ const tabs = [
   { key: "surveys", label: "Encuestas", icon: ClipboardList },
   { key: "preusers", label: "Pre-Usuarios", icon: UserCheck },
   { key: "crowdfunding", label: "Crowdfunding", icon: Rocket },
+  { key: "cursos", label: "Cursos ONE", icon: BookOpen },
 ]
 
 /* ─── Main ─── */
@@ -133,6 +137,7 @@ export function AdminPanel({ data }: { data: AdminData }) {
           {activeTab === "surveys" && <SurveysTab surveys={data.surveys} />}
           {activeTab === "preusers" && <PreUsersTab preUsers={data.preUsers} />}
           {activeTab === "crowdfunding" && <CrowdfundingTab config={data.crowdfundingConfig} />}
+          {activeTab === "cursos" && <CursosOneTab config={data.cursosOneConfig} />}
         </div>
       </div>
     </div>
@@ -359,6 +364,169 @@ function CfTextArea({ label, value, onChange }: { label: string; value: string; 
   )
 }
 
+
+/* ─── Cursos ONE Tab ─── */
+function CursosOneTab({ config }: { config: Record<string, unknown> | null }) {
+  const [data, setData] = useState<Record<string, unknown>>(config ?? {})
+  const [isPending, startTransition] = useTransition()
+  const [editSection, setEditSection] = useState<string | null>(null)
+  const router = useRouter()
+
+  if (!config) {
+    return (
+      <div className="text-center py-8 text-sm text-muted-foreground">
+        No hay configuracion de cursos. Crea un registro en la tabla cursos_one_config.
+      </div>
+    )
+  }
+
+  function save() {
+    startTransition(async () => {
+      const id = data.id as string
+      const payload = { ...data }
+      delete payload.id
+      delete payload.updated_at
+      await updateCursosOneConfig(id, payload)
+      setEditSection(null)
+      router.refresh()
+    })
+  }
+
+  function updateField(key: string, value: unknown) {
+    setData((prev) => ({ ...prev, [key]: value }))
+  }
+
+  function updateJsonArray(key: string, index: number, field: string, value: unknown) {
+    const arr = [...((data[key] as Record<string, unknown>[]) ?? [])]
+    arr[index] = { ...arr[index], [field]: value }
+    updateField(key, arr)
+  }
+
+  function addJsonItem(key: string, template: Record<string, unknown>) {
+    const arr = [...((data[key] as Record<string, unknown>[]) ?? []), template]
+    updateField(key, arr)
+  }
+
+  function removeJsonItem(key: string, index: number) {
+    const arr = [...((data[key] as Record<string, unknown>[]) ?? [])]
+    arr.splice(index, 1)
+    updateField(key, arr)
+  }
+
+  const sections = [
+    { key: "hero", label: "Hero / Portada" },
+    { key: "courses", label: "Opciones de Curso" },
+    { key: "contact", label: "CTA de Contacto" },
+    { key: "faq", label: "Preguntas Frecuentes" },
+    { key: "social", label: "CTA Redes Sociales" },
+  ]
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader title="Pagina Cursos ONE" />
+      <p className="text-xs text-muted-foreground">
+        Edita cada seccion de la pagina <span className="font-mono text-primary">/cursosone</span>
+      </p>
+
+      <div className="space-y-2">
+        {sections.map((sec) => {
+          const isOpen = editSection === sec.key
+          return (
+            <div key={sec.key} className="rounded-xl border border-border overflow-hidden">
+              <button
+                onClick={() => setEditSection(isOpen ? null : sec.key)}
+                className="flex w-full items-center justify-between p-4 hover:bg-secondary/50 transition-colors"
+              >
+                <span className="text-sm font-semibold text-foreground">{sec.label}</span>
+                {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </button>
+              {isOpen && (
+                <div className="border-t border-border p-4 space-y-3 bg-secondary/20">
+                  {sec.key === "hero" && (
+                    <>
+                      <FieldInput label="Titulo" value={(data.hero_title as string) ?? ""} onChange={(v) => updateField("hero_title", v)} />
+                      <FieldInput label="Subtitulo" value={(data.hero_subtitle as string) ?? ""} onChange={(v) => updateField("hero_subtitle", v)} />
+                      <CfTextArea label="Descripcion" value={(data.hero_description as string) ?? ""} onChange={(v) => updateField("hero_description", v)} />
+                      <FieldInput label="URL Imagen (opcional)" value={(data.hero_image_url as string) ?? ""} onChange={(v) => updateField("hero_image_url", v)} placeholder="https://... o vacio para avatar default" />
+                    </>
+                  )}
+
+                  {sec.key === "courses" && (
+                    <>
+                      <label className="text-xs font-medium text-foreground">Opciones de Curso</label>
+                      {((data.course_options as { id: string; title: string; badge: string; description: string; features: string[]; price: string; cta_text: string; whatsapp_message: string }[]) ?? []).map((opt, i) => (
+                        <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+                          <div className="flex gap-2 items-end">
+                            <FieldInput label="ID" value={opt.id} onChange={(v) => updateJsonArray("course_options", i, "id", v)} />
+                            <FieldInput label="Titulo" value={opt.title} onChange={(v) => updateJsonArray("course_options", i, "title", v)} />
+                            <FieldInput label="Badge" value={opt.badge} onChange={(v) => updateJsonArray("course_options", i, "badge", v)} />
+                            <button onClick={() => removeJsonItem("course_options", i)} className="p-1.5 text-muted-foreground hover:text-destructive-foreground"><Trash2 className="h-3.5 w-3.5" /></button>
+                          </div>
+                          <CfTextArea label="Descripcion" value={opt.description} onChange={(v) => updateJsonArray("course_options", i, "description", v)} />
+                          <FieldInput label="Precio" value={opt.price} onChange={(v) => updateJsonArray("course_options", i, "price", v)} />
+                          <FieldInput label="Texto CTA" value={opt.cta_text} onChange={(v) => updateJsonArray("course_options", i, "cta_text", v)} />
+                          <FieldInput label="Mensaje WhatsApp" value={opt.whatsapp_message} onChange={(v) => updateJsonArray("course_options", i, "whatsapp_message", v)} />
+                          <label className="text-[10px] font-medium text-muted-foreground">Caracteristicas (una por linea)</label>
+                          <textarea
+                            value={(opt.features ?? []).join("\n")}
+                            onChange={(e) => {
+                              const arr = [...((data.course_options as Record<string, unknown>[]) ?? [])]
+                              arr[i] = { ...arr[i], features: e.target.value.split("\n") }
+                              updateField("course_options", arr)
+                            }}
+                            rows={4}
+                            className="w-full rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-y"
+                          />
+                        </div>
+                      ))}
+                      <button onClick={() => addJsonItem("course_options", { id: "nuevo", title: "Nuevo Curso", badge: "", description: "", features: [], price: "Consultar", cta_text: "Quiero este curso", whatsapp_message: "Hola! Me interesa el curso." })} className="text-xs text-primary hover:underline flex items-center gap-1"><Plus className="h-3 w-3" /> Agregar opcion de curso</button>
+                    </>
+                  )}
+
+                  {sec.key === "contact" && (
+                    <>
+                      <FieldInput label="Numero WhatsApp" value={(data.whatsapp_number as string) ?? ""} onChange={(v) => updateField("whatsapp_number", v)} placeholder="56984787937" />
+                      <FieldInput label="Titulo CTA" value={(data.contact_cta_title as string) ?? ""} onChange={(v) => updateField("contact_cta_title", v)} />
+                      <CfTextArea label="Descripcion CTA" value={(data.contact_cta_description as string) ?? ""} onChange={(v) => updateField("contact_cta_description", v)} />
+                      <FieldInput label="Texto del boton" value={(data.contact_cta_button_text as string) ?? ""} onChange={(v) => updateField("contact_cta_button_text", v)} />
+                      <FieldInput label="Mensaje WhatsApp default" value={(data.contact_cta_message as string) ?? ""} onChange={(v) => updateField("contact_cta_message", v)} />
+                    </>
+                  )}
+
+                  {sec.key === "faq" && (
+                    <>
+                      <label className="text-xs font-medium text-foreground">Preguntas y Respuestas</label>
+                      {((data.faq_items as { q: string; a: string }[]) ?? []).map((f, i) => (
+                        <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+                          <div className="flex gap-2 items-end">
+                            <div className="flex-1"><FieldInput label="Pregunta" value={f.q} onChange={(v) => updateJsonArray("faq_items", i, "q", v)} /></div>
+                            <button onClick={() => removeJsonItem("faq_items", i)} className="p-1.5 text-muted-foreground hover:text-destructive-foreground"><Trash2 className="h-3.5 w-3.5" /></button>
+                          </div>
+                          <CfTextArea label="Respuesta" value={f.a} onChange={(v) => updateJsonArray("faq_items", i, "a", v)} />
+                        </div>
+                      ))}
+                      <button onClick={() => addJsonItem("faq_items", { q: "", a: "" })} className="text-xs text-primary hover:underline flex items-center gap-1"><Plus className="h-3 w-3" /> Agregar pregunta</button>
+                    </>
+                  )}
+
+                  {sec.key === "social" && (
+                    <>
+                      <FieldInput label="Titulo" value={(data.social_cta_title as string) ?? ""} onChange={(v) => updateField("social_cta_title", v)} />
+                      <CfTextArea label="Descripcion" value={(data.social_cta_description as string) ?? ""} onChange={(v) => updateField("social_cta_description", v)} />
+                      <p className="text-[10px] text-muted-foreground">Las redes sociales se gestionan desde la pestana &quot;Redes&quot; del panel admin.</p>
+                    </>
+                  )}
+
+                  <ActionButton onClick={save} loading={isPending} label="Guardar Cambios" icon={Save} />
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 /* ─── Shared Components ─── */
 function FieldInput({

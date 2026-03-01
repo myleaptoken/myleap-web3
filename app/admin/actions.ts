@@ -154,6 +154,16 @@ export async function deleteTestimonial(id: string) {
   return { success: true }
 }
 
+// ─── Cursos ONE Config ───
+export async function updateCursosOneConfig(id: string, data: Record<string, unknown>) {
+  await requireAdmin()
+  const supabase = createAdminClient()
+  const { error } = await supabase.from("cursos_one_config").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidateAll()
+  return { success: true }
+}
+
 // ─── Crowdfunding Config ───
 export async function updateCrowdfundingConfig(id: string, data: Record<string, unknown>) {
   await requireAdmin()
@@ -169,7 +179,7 @@ export async function getAdminData() {
   await requireAdmin()
   const supabase = createAdminClient()
 
-  const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes, testimonialsRes, preUsersRes, crowdfundingRes] =
+  const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes, testimonialsRes, preUsersRes, crowdfundingRes, cursosRes] =
     await Promise.all([
       supabase.from("profile").select("*").limit(1).single(),
       supabase.from("social_links").select("*").order("display_order"),
@@ -180,6 +190,7 @@ export async function getAdminData() {
       supabase.from("testimonials").select("*").order("display_order"),
       supabase.from("pre_users").select("*").order("created_at", { ascending: false }),
       supabase.from("crowdfunding_config").select("*").limit(1).single(),
+      supabase.from("cursos_one_config").select("*").limit(1).single(),
     ])
 
   return {
@@ -192,5 +203,6 @@ export async function getAdminData() {
     testimonials: testimonialsRes.data ?? [],
     preUsers: preUsersRes.data ?? [],
     crowdfundingConfig: crowdfundingRes.data,
+    cursosOneConfig: cursosRes.data,
   }
 }
