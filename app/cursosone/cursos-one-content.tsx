@@ -3,7 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { AmbientBackground } from "@/components/ambient-background"
-import type { SocialLink } from "@/lib/types"
+import { TestimonialsCarousel } from "@/components/testimonials-carousel"
+import type { SocialLink, Testimonial } from "@/lib/types"
 import {
   ArrowLeft,
   MessageCircle,
@@ -17,6 +18,7 @@ import {
   MapPin,
   HelpCircle,
   Heart,
+  Play,
 } from "lucide-react"
 
 /* ─── Types ─── */
@@ -39,6 +41,7 @@ interface CursosConfig {
   hero_subtitle: string
   hero_description: string
   hero_image_url: string | null
+  video_url: string | null
   course_options: CourseOption[]
   whatsapp_number: string
   contact_cta_title: string
@@ -88,9 +91,11 @@ const courseIcons: Record<string, React.ReactNode> = {
 export function CursosOneContent({
   config,
   socialLinks,
+  testimonials,
 }: {
   config: Record<string, unknown>
   socialLinks: SocialLink[]
+  testimonials: Testimonial[]
 }) {
   const c = config as unknown as CursosConfig
   const waBase = `https://wa.me/${c.whatsapp_number.replace(/[^0-9]/g, "")}`
@@ -111,11 +116,27 @@ export function CursosOneContent({
         {/* Hero */}
         <HeroSection c={c} waBase={waBase} />
 
+        {/* Video Presentation */}
+        {c.video_url && <VideoSection url={c.video_url} />}
+
         {/* Course Options Carousel */}
         <CourseCarousel options={c.course_options} waBase={waBase} />
 
         {/* Contact CTA */}
         <ContactCTA c={c} waBase={waBase} />
+
+        {/* Testimonials */}
+        {testimonials.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                <Heart className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <h2 className="text-sm font-bold text-foreground">La comunidad habla</h2>
+            </div>
+            <TestimonialsCarousel testimonials={testimonials} />
+          </section>
+        )}
 
         {/* FAQ */}
         <FaqSection items={c.faq_items} />
@@ -308,6 +329,44 @@ function FaqSection({ items }: { items: FaqItem[] }) {
             </div>
           )
         })}
+      </div>
+    </section>
+  )
+}
+
+/* ─── Video Section ─── */
+function VideoSection({ url }: { url: string }) {
+  // Extract YouTube video ID from various URL formats
+  let videoId = ""
+  try {
+    const u = new URL(url)
+    if (u.hostname.includes("youtube.com")) {
+      videoId = u.searchParams.get("v") ?? ""
+    } else if (u.hostname === "youtu.be") {
+      videoId = u.pathname.slice(1)
+    }
+  } catch {
+    videoId = url // fallback: treat as raw ID
+  }
+
+  if (!videoId) return null
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center gap-2">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+          <Play className="h-3.5 w-3.5 text-primary" />
+        </div>
+        <h2 className="text-sm font-bold text-foreground">Conoce el Metodo ONE</h2>
+      </div>
+      <div className="relative w-full overflow-hidden rounded-xl border border-border aspect-video">
+        <iframe
+          src={`https://www.youtube.com/embed/${videoId}`}
+          title="Video de presentacion - Metodo ONE"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 h-full w-full"
+        />
       </div>
     </section>
   )

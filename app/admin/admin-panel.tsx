@@ -448,6 +448,7 @@ function CursosOneTab({ config }: { config: Record<string, unknown> | null }) {
                       <FieldInput label="Subtitulo" value={(data.hero_subtitle as string) ?? ""} onChange={(v) => updateField("hero_subtitle", v)} />
                       <CfTextArea label="Descripcion" value={(data.hero_description as string) ?? ""} onChange={(v) => updateField("hero_description", v)} />
                       <FieldInput label="URL Imagen (opcional)" value={(data.hero_image_url as string) ?? ""} onChange={(v) => updateField("hero_image_url", v)} placeholder="https://... o vacio para avatar default" />
+                      <FieldInput label="Video YouTube (URL)" value={(data.video_url as string) ?? ""} onChange={(v) => updateField("video_url", v)} placeholder="https://www.youtube.com/watch?v=... o vacio para ocultar" />
                     </>
                   )}
 

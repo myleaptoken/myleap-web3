@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 import {
   Dialog,
@@ -684,13 +685,26 @@ function VideoModal({
 
         {modal.cta_button_text && (
           <DialogFooter className="mt-2">
-            <a
-              href={modal.cta_button_url ?? "#"}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-95"
-            >
-              <GraduationCap className="h-4 w-4" />
-              {modal.cta_button_text}
-            </a>
+            {(modal.cta_button_url ?? "").startsWith("/") ? (
+              <Link
+                href={modal.cta_button_url ?? "#"}
+                onClick={() => onOpenChange(false)}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-95"
+              >
+                <GraduationCap className="h-4 w-4" />
+                {modal.cta_button_text}
+              </Link>
+            ) : (
+              <a
+                href={modal.cta_button_url ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-95"
+              >
+                <GraduationCap className="h-4 w-4" />
+                {modal.cta_button_text}
+              </a>
+            )}
           </DialogFooter>
         )}
       </DialogContent>

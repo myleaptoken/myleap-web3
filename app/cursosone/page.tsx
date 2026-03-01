@@ -18,5 +18,5 @@ export default async function CursosOnePage() {
     )
   }
 
-  return <CursosOneContent config={config} socialLinks={pageData.socialLinks} />
+  return <CursosOneContent config={config} socialLinks={pageData.socialLinks} testimonials={pageData.testimonials} />
 }
