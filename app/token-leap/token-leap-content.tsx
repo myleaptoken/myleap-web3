@@ -200,7 +200,7 @@ function TierCard({ tier }: { tier: CrowdfundingConfig["tiers"][number] }) {
             </div>
           ))}
           <a
-            href={`https://wa.me/5491100000000?text=Hola!%20Quiero%20adquirir%20tokens%20LEAP%20nivel%20${encodeURIComponent(tier.name)}`}
+            href={`https://wa.me/56984787937?text=Hola!%20Quiero%20adquirir%20tokens%20LEAP%20nivel%20${encodeURIComponent(tier.name)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] transition-all"
