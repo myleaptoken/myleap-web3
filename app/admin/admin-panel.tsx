@@ -672,6 +672,9 @@ function ProfileTab({
     stat_leapers: (profile?.stat_leapers as string) ?? "",
     stat_cursos: (profile?.stat_cursos as string) ?? "",
     stat_estudiantes: (profile?.stat_estudiantes as string) ?? "",
+    floating_cta_enabled: (profile?.floating_cta_enabled as boolean) ?? false,
+    floating_cta_text: (profile?.floating_cta_text as string) ?? "Iniciar Sanación",
+    floating_cta_url: (profile?.floating_cta_url as string) ?? "",
   })
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -697,6 +700,33 @@ function ProfileTab({
         <FieldInput label="Stat Estudiantes" value={form.stat_estudiantes} onChange={(v) => setForm({ ...form, stat_estudiantes: v })} />
       </div>
       <FieldInput label="Bio" value={form.bio} onChange={(v) => setForm({ ...form, bio: v })} textarea />
+      
+      {/* Floating CTA */}
+      <div className="mt-4 pt-4 border-t border-border space-y-3">
+        <h3 className="text-xs font-semibold text-foreground">Boton Flotante (Esquina Superior Izquierda)</h3>
+        <ToggleField 
+          label="Activar Boton Flotante" 
+          checked={form.floating_cta_enabled} 
+          onChange={(v) => setForm({ ...form, floating_cta_enabled: v })} 
+        />
+        {form.floating_cta_enabled && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldInput 
+              label="Texto del Boton" 
+              value={form.floating_cta_text} 
+              onChange={(v) => setForm({ ...form, floating_cta_text: v })} 
+              placeholder="Iniciar Sanación" 
+            />
+            <FieldInput 
+              label="URL / Ruta" 
+              value={form.floating_cta_url} 
+              onChange={(v) => setForm({ ...form, floating_cta_url: v })} 
+              placeholder="/cursosone o https://..." 
+            />
+          </div>
+        )}
+      </div>
+      
       <ActionButton onClick={save} loading={isPending} label="Guardar Perfil" icon={Save} />
     </div>
   )

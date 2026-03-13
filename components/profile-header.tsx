@@ -63,7 +63,7 @@ function StatItem({ value, label }: { value: string; label: string }) {
       <span className="text-lg sm:text-xl font-bold text-foreground font-mono">
         {value}
       </span>
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs font-semibold section-title-shimmer">{label}</span>
     </div>
   )
 }

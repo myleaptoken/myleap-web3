@@ -6,6 +6,7 @@ import { FeaturedContent } from "@/components/featured-content"
 import { ProfileFooter } from "@/components/profile-footer"
 import { AmbientBackground } from "@/components/ambient-background"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { FloatingCta } from "@/components/floating-cta"
 import { getPageData } from "@/lib/data"
 
 export default async function ProfilePage() {
@@ -15,6 +16,11 @@ export default async function ProfilePage() {
   return (
     <>
       <ThemeToggle />
+      <FloatingCta 
+        enabled={profile.floating_cta_enabled} 
+        text={profile.floating_cta_text} 
+        url={profile.floating_cta_url} 
+      />
       <AmbientBackground />
       <main className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center px-4 pb-8">
         {/* Profile Header with Banner + Avatar + Bio + Stats */}

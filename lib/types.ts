@@ -11,6 +11,9 @@ export interface Profile {
   stat_leapers: string
   stat_cursos: string
   stat_estudiantes: string
+  floating_cta_enabled: boolean
+  floating_cta_text: string | null
+  floating_cta_url: string | null
 }
 
 export interface SocialLink {
