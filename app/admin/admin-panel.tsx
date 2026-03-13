@@ -667,6 +667,7 @@ function ProfileTab({
     subtitle: (profile?.subtitle as string) ?? "",
     bio: (profile?.bio as string) ?? "",
     avatar_url: (profile?.avatar_url as string) ?? "",
+    avatar_video_url: (profile?.avatar_video_url as string) ?? "",
     banner_url: (profile?.banner_url as string) ?? "",
     stat_leapers: (profile?.stat_leapers as string) ?? "",
     stat_cursos: (profile?.stat_cursos as string) ?? "",
@@ -688,7 +689,8 @@ function ProfileTab({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FieldInput label="Nombre" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
         <FieldInput label="Subtitulo" value={form.subtitle} onChange={(v) => setForm({ ...form, subtitle: v })} />
-        <FieldInput label="Avatar URL" value={form.avatar_url} onChange={(v) => setForm({ ...form, avatar_url: v })} />
+        <FieldInput label="Avatar URL (imagen)" value={form.avatar_url} onChange={(v) => setForm({ ...form, avatar_url: v })} />
+        <FieldInput label="Avatar Video URL (MP4)" value={form.avatar_video_url} onChange={(v) => setForm({ ...form, avatar_video_url: v })} placeholder="Si hay video, reemplaza la imagen" />
         <FieldInput label="Banner URL" value={form.banner_url} onChange={(v) => setForm({ ...form, banner_url: v })} />
         <FieldInput label="Stat Leapers" value={form.stat_leapers} onChange={(v) => setForm({ ...form, stat_leapers: v })} />
         <FieldInput label="Stat Cursos" value={form.stat_cursos} onChange={(v) => setForm({ ...form, stat_cursos: v })} />

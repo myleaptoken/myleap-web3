@@ -6,6 +6,7 @@ export interface Profile {
   subtitle: string | null
   bio: string | null
   avatar_url: string | null
+  avatar_video_url: string | null
   banner_url: string | null
   stat_leapers: string
   stat_cursos: string

@@ -18,7 +18,7 @@ export function ProfileHeader({ profile }: { profile: Profile }) {
       {/* Avatar */}
       <div className="relative -mt-16 sm:-mt-20 flex flex-col items-center px-4">
         <div className="relative animate-scale-in">
-          <AdminAvatarTrigger profileName={profile.name} />
+          <AdminAvatarTrigger profileName={profile.name} avatarVideoUrl={profile.avatar_video_url} />
         </div>
 
         {/* Name & Bio */}
