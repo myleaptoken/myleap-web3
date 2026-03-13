@@ -198,3 +198,47 @@
   background-clip: text;
   animation: diagonal-shimmer 6s ease-in-out infinite;
 }
+
+/* Section title shimmer - for section headers */
+.section-title-shimmer {
+  background: linear-gradient(90deg, #06b6d4 0%, #22d3ee 25%, #67e8f9 50%, #22d3ee 75%, #06b6d4 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+.dark .section-title-shimmer {
+  background: linear-gradient(90deg, #22d3ee 0%, #67e8f9 25%, #a5f3fc 50%, #67e8f9 75%, #22d3ee 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Energy flow line animation */
+@keyframes energy-flow {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes energy-flow-reverse {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.energy-line-left {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #06b6d4 30%, #22d3ee 50%, #67e8f9 70%, transparent 100%);
+  background-size: 200% 100%;
+  animation: energy-flow-reverse 3s linear infinite;
+}
+
+.energy-line-right {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #67e8f9 30%, #22d3ee 50%, #06b6d4 70%, transparent 100%);
+  background-size: 200% 100%;
+  animation: energy-flow 3s linear infinite;
+}

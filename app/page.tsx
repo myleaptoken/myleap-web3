@@ -43,11 +43,11 @@ export default async function ProfilePage() {
         {testimonials.length > 0 && (
           <>
             <div className="my-6 flex w-full items-center gap-3">
-              <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+              <div className="flex-1 energy-line-left" />
+              <span className="text-xs font-semibold uppercase tracking-widest section-title-shimmer">
                 Testimonios
               </span>
-              <div className="h-px flex-1 bg-border" />
+              <div className="flex-1 energy-line-right" />
             </div>
 
             <section className="w-full" aria-label="Testimonios">
@@ -60,11 +60,11 @@ export default async function ProfilePage() {
         {featuredLinks.length > 0 && (
           <>
             <div className="my-6 flex w-full items-center gap-3">
-              <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+              <div className="flex-1 energy-line-left" />
+              <span className="text-xs font-semibold uppercase tracking-widest section-title-shimmer">
                 Destacado
               </span>
-              <div className="h-px flex-1 bg-border" />
+              <div className="flex-1 energy-line-right" />
             </div>
 
             {/* Featured Content Cards */}
