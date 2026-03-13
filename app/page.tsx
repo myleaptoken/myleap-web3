@@ -27,11 +27,11 @@ export default async function ProfilePage() {
 
         {/* Divider */}
         <div className="my-6 flex w-full items-center gap-3">
-          <div className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+          <div className="flex-1 energy-line-left" />
+          <span className="text-xs font-semibold uppercase tracking-widest section-title-shimmer">
             Enlaces
           </span>
-          <div className="h-px flex-1 bg-border" />
+          <div className="flex-1 energy-line-right" />
         </div>
 
         {/* CTA Link Buttons */}
@@ -44,7 +44,7 @@ export default async function ProfilePage() {
           <>
             <div className="my-6 flex w-full items-center gap-3">
               <div className="flex-1 energy-line-left" />
-              <span className="text-xs font-semibold uppercase tracking-widest section-title-shimmer">
+              <span className="text-sm font-bold uppercase tracking-widest section-title-shimmer">
                 Testimonios
               </span>
               <div className="flex-1 energy-line-right" />

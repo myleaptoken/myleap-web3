@@ -131,9 +131,9 @@ export function TestimonialsCarousel({ testimonials }: { testimonials: Testimoni
               className={`group relative shrink-0 snap-start transition-all duration-200 ${
                 activeIndex === i ? "ring-2 ring-primary ring-offset-1 ring-offset-background rounded-xl" : ""
               }`}
-              style={{ width: "clamp(120px, 30vw, 160px)" }}
+              style={{ width: "clamp(135px, 32vw, 175px)" }}
             >
-              <div className="relative aspect-[8/5] w-full overflow-hidden rounded-xl border border-border bg-secondary group-hover:border-primary/40 group-hover:shadow-md transition-all duration-200">
+              <div className="relative aspect-[9/6] w-full overflow-hidden rounded-xl border border-border bg-secondary group-hover:border-primary/40 group-hover:shadow-md transition-all duration-200">
                 {(() => {
                   const thumb = getThumbnail(t)
                   return thumb ? (
