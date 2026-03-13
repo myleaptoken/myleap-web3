@@ -28,9 +28,9 @@ export function ThemeToggle() {
     return (
       <button
         aria-label="Cambiar tema"
-        className="fixed top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-lg"
+        className="fixed top-16 right-4 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-md"
       >
-        <Sun className="h-5 w-5" />
+        <Sun className="h-4 w-4" />
       </button>
     )
   }
@@ -39,12 +39,12 @@ export function ThemeToggle() {
     <button
       onClick={toggleTheme}
       aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-      className="fixed top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-lg transition-all duration-300 hover:scale-110 hover:border-primary hover:text-primary hover:shadow-primary/20"
+      className="fixed top-16 right-4 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-all duration-300 hover:scale-110 hover:border-primary hover:text-primary hover:shadow-primary/20"
     >
       {isDark ? (
-        <Sun className="h-5 w-5 transition-transform duration-300" />
+        <Sun className="h-4 w-4 transition-transform duration-300" />
       ) : (
-        <Moon className="h-5 w-5 transition-transform duration-300" />
+        <Moon className="h-4 w-4 transition-transform duration-300" />
       )}
     </button>
   )
