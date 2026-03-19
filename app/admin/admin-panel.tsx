@@ -17,6 +17,10 @@ import {
   deleteTestimonial,
   updateCrowdfundingConfig,
   updateCursosOneConfig,
+  updateSanacionConfig,
+  updateSanacionOption,
+  createSanacionOption,
+  deleteSanacionOption,
 } from "./actions"
 import {
   User,
@@ -38,6 +42,7 @@ import {
   CheckCircle2,
   Rocket,
   BookOpen,
+  Sparkles,
 } from "lucide-react"
 
 /* ─── Types ─── */
@@ -52,6 +57,8 @@ interface AdminData {
   preUsers: Record<string, unknown>[]
   crowdfundingConfig: Record<string, unknown> | null
   cursosOneConfig: Record<string, unknown> | null
+  sanacionConfig: Record<string, unknown> | null
+  sanacionOptions: Record<string, unknown>[]
 }
 
 const tabs = [
@@ -65,6 +72,7 @@ const tabs = [
   { key: "preusers", label: "Pre-Usuarios", icon: UserCheck },
   { key: "crowdfunding", label: "Crowdfunding", icon: Rocket },
   { key: "cursos", label: "Cursos ONE", icon: BookOpen },
+  { key: "sanacion", label: "Sanacion", icon: Sparkles },
 ]
 
 /* ─── Main ─── */
@@ -138,6 +146,7 @@ export function AdminPanel({ data }: { data: AdminData }) {
           {activeTab === "preusers" && <PreUsersTab preUsers={data.preUsers} />}
           {activeTab === "crowdfunding" && <CrowdfundingTab config={data.crowdfundingConfig} />}
           {activeTab === "cursos" && <CursosOneTab config={data.cursosOneConfig} />}
+          {activeTab === "sanacion" && <SanacionTab config={data.sanacionConfig} options={data.sanacionOptions} />}
         </div>
       </div>
     </div>
@@ -519,6 +528,148 @@ function CursosOneTab({ config }: { config: Record<string, unknown> | null }) {
                   )}
 
                   <ActionButton onClick={save} loading={isPending} label="Guardar Cambios" icon={Save} />
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ─── Sanacion Tab ─── */
+function SanacionTab({ config, options }: { config: Record<string, unknown> | null; options: Record<string, unknown>[] }) {
+  const [configData, setConfigData] = useState<Record<string, unknown>>(config ?? {})
+  const [optionsList, setOptionsList] = useState<Record<string, unknown>[]>(options)
+  const [isPending, startTransition] = useTransition()
+  const [editingOption, setEditingOption] = useState<string | null>(null)
+  const router = useRouter()
+
+  if (!config) {
+    return (
+      <div className="text-center py-8 text-sm text-muted-foreground">
+        No hay configuracion de sanacion. Crea un registro en la tabla sanacion_modal_config.
+      </div>
+    )
+  }
+
+  function saveConfig() {
+    startTransition(async () => {
+      const id = configData.id as string
+      const payload = { ...configData }
+      delete payload.id
+      delete payload.updated_at
+      await updateSanacionConfig(id, payload)
+      router.refresh()
+    })
+  }
+
+  function saveOption(opt: Record<string, unknown>) {
+    startTransition(async () => {
+      await updateSanacionOption(opt.id as string, {
+        title: opt.title,
+        description: opt.description,
+        price: opt.price,
+        badge: opt.badge,
+        whatsapp_message: opt.whatsapp_message,
+        display_order: opt.display_order,
+        is_active: opt.is_active,
+      })
+      setEditingOption(null)
+      router.refresh()
+    })
+  }
+
+  function addOption() {
+    startTransition(async () => {
+      await createSanacionOption({
+        title: "Nueva Opcion",
+        description: "",
+        price: "$0",
+        badge: "",
+        whatsapp_message: "Hola! Me interesa esta opcion de sanacion.",
+        display_order: optionsList.length + 1,
+        is_active: true,
+      })
+      router.refresh()
+    })
+  }
+
+  function removeOption(id: string) {
+    startTransition(async () => {
+      await deleteSanacionOption(id)
+      setOptionsList((prev) => prev.filter((o) => o.id !== id))
+      router.refresh()
+    })
+  }
+
+  function updateOptionLocal(id: string, field: string, value: unknown) {
+    setOptionsList((prev) =>
+      prev.map((o) => (o.id === id ? { ...o, [field]: value } : o))
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <SectionHeader title="Modal de Sanacion" />
+      <p className="text-xs text-muted-foreground">
+        Configura el modal que se abre al presionar el boton &quot;Iniciar Sanacion&quot;. 
+        Para activarlo, configura la URL del boton flotante como <span className="font-mono text-primary">#sanacion-modal</span> en la tab Perfil.
+      </p>
+
+      {/* Config del Modal */}
+      <div className="rounded-xl border border-border p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">Configuracion General</h3>
+        <FieldInput label="Titulo del Modal" value={(configData.modal_title as string) ?? ""} onChange={(v) => setConfigData({ ...configData, modal_title: v })} />
+        <FieldInput label="Subtitulo" value={(configData.modal_subtitle as string) ?? ""} onChange={(v) => setConfigData({ ...configData, modal_subtitle: v })} />
+        <FieldInput label="Numero WhatsApp" value={(configData.whatsapp_number as string) ?? ""} onChange={(v) => setConfigData({ ...configData, whatsapp_number: v })} placeholder="56984787937" />
+        <ActionButton onClick={saveConfig} loading={isPending} label="Guardar Config" icon={Save} />
+      </div>
+
+      {/* Opciones de Sanacion */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground">Opciones de Sanacion</h3>
+          <button onClick={addOption} disabled={isPending} className="flex items-center gap-1 text-xs text-primary hover:underline">
+            <Plus className="h-3 w-3" /> Agregar
+          </button>
+        </div>
+
+        {optionsList.map((opt) => {
+          const isEditing = editingOption === opt.id
+          return (
+            <div key={opt.id as string} className="rounded-xl border border-border p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-foreground">{opt.title as string}</span>
+                  <span className="text-xs text-muted-foreground">{opt.price as string}</span>
+                  {opt.badge && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{opt.badge as string}</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setEditingOption(isEditing ? null : (opt.id as string))} className="p-1 text-muted-foreground hover:text-foreground">
+                    {isEditing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+                  </button>
+                  <button onClick={() => removeOption(opt.id as string)} className="p-1 text-muted-foreground hover:text-destructive-foreground">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {isEditing && (
+                <div className="space-y-3 pt-2 border-t border-border">
+                  <div className="grid grid-cols-2 gap-3">
+                    <FieldInput label="Titulo" value={(opt.title as string) ?? ""} onChange={(v) => updateOptionLocal(opt.id as string, "title", v)} />
+                    <FieldInput label="Precio" value={(opt.price as string) ?? ""} onChange={(v) => updateOptionLocal(opt.id as string, "price", v)} />
+                  </div>
+                  <FieldInput label="Descripcion" value={(opt.description as string) ?? ""} onChange={(v) => updateOptionLocal(opt.id as string, "description", v)} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <FieldInput label="Badge" value={(opt.badge as string) ?? ""} onChange={(v) => updateOptionLocal(opt.id as string, "badge", v)} placeholder="Ej: Prueba, 2x1, Individual" />
+                    <FieldInput label="Orden" value={String(opt.display_order ?? 0)} onChange={(v) => updateOptionLocal(opt.id as string, "display_order", parseInt(v) || 0)} />
+                  </div>
+                  <FieldInput label="Mensaje WhatsApp" value={(opt.whatsapp_message as string) ?? ""} onChange={(v) => updateOptionLocal(opt.id as string, "whatsapp_message", v)} />
+                  <ToggleField label="Activo" checked={(opt.is_active as boolean) ?? true} onChange={(v) => updateOptionLocal(opt.id as string, "is_active", v)} />
+                  <ActionButton onClick={() => saveOption(opt)} loading={isPending} label="Guardar Opcion" icon={Save} />
                 </div>
               )}
             </div>

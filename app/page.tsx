@@ -7,11 +7,14 @@ import { ProfileFooter } from "@/components/profile-footer"
 import { AmbientBackground } from "@/components/ambient-background"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { FloatingCta } from "@/components/floating-cta"
-import { getPageData } from "@/lib/data"
+import { getPageData, getSanacionData } from "@/lib/data"
 
 export default async function ProfilePage() {
-  const { profile, socialLinks, ctaLinks, featuredLinks, facilitators, testimonials } =
-    await getPageData()
+  const [pageData, sanacionData] = await Promise.all([
+    getPageData(),
+    getSanacionData(),
+  ])
+  const { profile, socialLinks, ctaLinks, featuredLinks, facilitators, testimonials } = pageData
 
   return (
     <>
@@ -19,7 +22,13 @@ export default async function ProfilePage() {
       <FloatingCta 
         enabled={profile.floating_cta_enabled} 
         text={profile.floating_cta_text} 
-        url={profile.floating_cta_url} 
+        url={profile.floating_cta_url}
+        sanacionConfig={sanacionData.config ? {
+          modal_title: sanacionData.config.modal_title as string,
+          modal_subtitle: sanacionData.config.modal_subtitle as string | null,
+          whatsapp_number: sanacionData.config.whatsapp_number as string,
+        } : null}
+        sanacionOptions={sanacionData.options}
       />
       <AmbientBackground />
       <main className="relative mx-auto flex min-h-screen max-w-xl flex-col items-center px-4 pb-8">

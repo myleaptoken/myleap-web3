@@ -154,6 +154,43 @@ export async function deleteTestimonial(id: string) {
   return { success: true }
 }
 
+// ─── Sanacion Modal Config ───
+export async function updateSanacionConfig(id: string, data: Record<string, unknown>) {
+  await requireAdmin()
+  const supabase = createAdminClient()
+  const { error } = await supabase.from("sanacion_modal_config").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidateAll()
+  return { success: true }
+}
+
+export async function updateSanacionOption(id: string, data: Record<string, unknown>) {
+  await requireAdmin()
+  const supabase = createAdminClient()
+  const { error } = await supabase.from("sanacion_options").update(data).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidateAll()
+  return { success: true }
+}
+
+export async function createSanacionOption(data: Record<string, unknown>) {
+  await requireAdmin()
+  const supabase = createAdminClient()
+  const { error } = await supabase.from("sanacion_options").insert(data)
+  if (error) throw new Error(error.message)
+  revalidateAll()
+  return { success: true }
+}
+
+export async function deleteSanacionOption(id: string) {
+  await requireAdmin()
+  const supabase = createAdminClient()
+  const { error } = await supabase.from("sanacion_options").delete().eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidateAll()
+  return { success: true }
+}
+
 // ─── Cursos ONE Config ───
 export async function updateCursosOneConfig(id: string, data: Record<string, unknown>) {
   await requireAdmin()
@@ -179,7 +216,7 @@ export async function getAdminData() {
   await requireAdmin()
   const supabase = createAdminClient()
 
-  const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes, testimonialsRes, preUsersRes, crowdfundingRes, cursosRes] =
+  const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes, testimonialsRes, preUsersRes, crowdfundingRes, cursosRes, sanacionConfigRes, sanacionOptionsRes] =
     await Promise.all([
       supabase.from("profile").select("*").limit(1).single(),
       supabase.from("social_links").select("*").order("display_order"),
@@ -191,6 +228,8 @@ export async function getAdminData() {
       supabase.from("pre_users").select("*").order("created_at", { ascending: false }),
       supabase.from("crowdfunding_config").select("*").limit(1).single(),
       supabase.from("cursos_one_config").select("*").limit(1).single(),
+      supabase.from("sanacion_modal_config").select("*").limit(1).single(),
+      supabase.from("sanacion_options").select("*").order("display_order"),
     ])
 
   return {
@@ -204,5 +243,7 @@ export async function getAdminData() {
     preUsers: preUsersRes.data ?? [],
     crowdfundingConfig: crowdfundingRes.data,
     cursosOneConfig: cursosRes.data,
+    sanacionConfig: sanacionConfigRes.data,
+    sanacionOptions: sanacionOptionsRes.data ?? [],
   }
 }

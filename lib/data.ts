@@ -79,3 +79,22 @@ export async function getCursosOneConfig() {
     .single()
   return data as Record<string, unknown> | null
 }
+
+export async function getSanacionData() {
+  const supabase = await createClient()
+  const [configRes, optionsRes] = await Promise.all([
+    supabase.from("sanacion_modal_config").select("*").limit(1).single(),
+    supabase.from("sanacion_options").select("*").eq("is_active", true).order("display_order"),
+  ])
+  return {
+    config: configRes.data as Record<string, unknown> | null,
+    options: (optionsRes.data ?? []) as Array<{
+      id: string
+      title: string
+      description: string | null
+      price: string
+      badge: string | null
+      whatsapp_message: string
+    }>,
+  }
+}
