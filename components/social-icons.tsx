@@ -102,6 +102,7 @@ function SocialButton({
         transition-all duration-300 ease-out
         hover:border-primary hover:text-primary hover:bg-primary/10
         hover:scale-110 hover:shadow-lg hover:shadow-primary/20
+        social-icon-twinkle
         ${isHovered ? "animate-pulse-glow" : ""}
       `}
     >
