@@ -25,31 +25,33 @@ export function AdminAvatarTrigger({ profileName, avatarVideoUrl }: { profileNam
   }, [router])
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="h-24 w-24 sm:h-32 sm:w-32 rounded-full gradient-border-animated overflow-hidden animate-pulse-glow cursor-default focus:outline-none"
-      aria-label={`${profileName} Logo`}
-    >
-      {avatarVideoUrl ? (
-        <video
-          src={avatarVideoUrl}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src="/images/avatar.png"
-          alt={`${profileName} Logo`}
-          width={128}
-          height={128}
-          className="h-full w-full object-cover"
-        />
-      )}
-    </button>
+    <div className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-full p-1 gradient-border-animated">
+      <button
+        type="button"
+        onClick={handleClick}
+        className="h-full w-full rounded-full overflow-hidden bg-background cursor-default focus:outline-none"
+        aria-label={`${profileName} Logo`}
+      >
+        {avatarVideoUrl ? (
+          <video
+            src={avatarVideoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="h-full w-full object-cover rounded-full"
+          />
+        ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src="/images/avatar.png"
+            alt={`${profileName} Logo`}
+            width={128}
+            height={128}
+            className="h-full w-full object-cover rounded-full"
+          />
+        )}
+      </button>
+    </div>
   )
 }
