@@ -151,10 +151,17 @@ export function SanacionModal({ open, onOpenChange, config, options }: SanacionM
         </div>
 
         {/* Footer hint */}
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 space-y-3">
           <p className="text-[10px] text-center text-muted-foreground">
             Al seleccionar una opción serás redirigido a WhatsApp
           </p>
+          <a
+            href="/sanar"
+            onClick={() => onOpenChange(false)}
+            className="block w-full text-center text-xs font-medium text-primary hover:text-cyan-400 transition-colors py-2 border border-border rounded-lg hover:border-cyan-500/30"
+          >
+            Sanar con MY LEAP
+          </a>
         </div>
       </DialogContent>
     </Dialog>
