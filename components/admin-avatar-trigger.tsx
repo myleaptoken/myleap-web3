@@ -28,7 +28,7 @@ export function AdminAvatarTrigger({ profileName, avatarVideoUrl }: { profileNam
     <button
       type="button"
       onClick={handleClick}
-      className="h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-cyan-500/50 bg-gradient-to-br from-cyan-600/20 to-cyan-900/40 overflow-hidden animate-pulse-glow cursor-default focus:outline-none"
+      className="h-24 w-24 sm:h-32 sm:w-32 rounded-full gradient-border-animated overflow-hidden animate-pulse-glow cursor-default focus:outline-none"
       aria-label={`${profileName} Logo`}
     >
       {avatarVideoUrl ? (
