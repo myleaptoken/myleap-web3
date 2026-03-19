@@ -11,6 +11,7 @@ interface SanacionOption {
   description: string | null
   price: string
   badge: string | null
+  duration: string | null
   whatsapp_message: string
 }
 

@@ -10,6 +10,7 @@ interface SanacionOption {
   description: string | null
   price: string
   badge: string | null
+  duration: string | null
   whatsapp_message: string
 }
 
@@ -95,16 +96,27 @@ export function SanacionModal({ open, onOpenChange, config, options }: SanacionM
 
               {/* Content */}
               <div className="flex-1 text-left min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground truncate">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-sm font-semibold text-foreground">
                     {option.title}
                   </span>
-                  {option.badge && (
+                  {option.duration && (
                     <span className={`
                       text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0
                       ${hoveredId === option.id 
                         ? "bg-cyan-500/20 text-cyan-400" 
                         : "bg-secondary text-muted-foreground"
+                      }
+                    `}>
+                      {option.duration}
+                    </span>
+                  )}
+                  {option.badge && (
+                    <span className={`
+                      text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0
+                      ${hoveredId === option.id 
+                        ? "bg-green-500/20 text-green-400" 
+                        : "bg-primary/10 text-primary"
                       }
                     `}>
                       {option.badge}
@@ -141,7 +153,7 @@ export function SanacionModal({ open, onOpenChange, config, options }: SanacionM
         {/* Footer hint */}
         <div className="px-4 pb-4">
           <p className="text-[10px] text-center text-muted-foreground">
-            Al seleccionar una opcion seras redirigido a WhatsApp
+            Al seleccionar una opción serás redirigido a WhatsApp
           </p>
         </div>
       </DialogContent>
