@@ -14,6 +14,7 @@ const nunitoSans = Nunito_Sans({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://myleap.world'),
   title: 'MY LEAP | Tu Salto de Energía',
   description: 'Perfil de empresa MY LEAP - Cursos, facilitadores, eventos y una comunidad para impulsar tu energía vital.',
   generator: 'v0.app',

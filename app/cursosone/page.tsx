@@ -2,6 +2,7 @@ import { getCursosOneConfig, getPageData } from "@/lib/data"
 import { CursosOneContent } from "./cursos-one-content"
 
 export const metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://myleap.world'),
   title: "Cursos Metodo ONE | MY LEAP",
   description:
     "Descubri el Metodo ONE: Optimizacion Neuro Energetica. Cursos presenciales, online en vivo y grabados para transformar tu bienestar.",
