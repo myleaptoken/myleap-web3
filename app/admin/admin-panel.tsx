@@ -722,6 +722,13 @@ function LandingSanarTab({ config }: { config: Record<string, unknown> | null })
         Los testimonios, logo, redes sociales y servicios se obtienen de sus respectivas tabs.
       </p>
 
+      {/* Video de Portada */}
+      <div className="rounded-xl border border-border p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">Video de Portada</h3>
+        <ToggleField label="Publicar Video" checked={(data.video_enabled as boolean) ?? false} onChange={(v) => updateField("video_enabled", v)} />
+        <FieldInput label="URL del Video" value={(data.video_url as string) ?? ""} onChange={(v) => updateField("video_url", v)} placeholder="https://..." />
+      </div>
+
       {/* Hero Section */}
       <div className="rounded-xl border border-border p-4 space-y-3">
         <h3 className="text-sm font-semibold text-foreground">Hero</h3>

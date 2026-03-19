@@ -102,6 +102,20 @@ export function SanarLandingContent({
             <SocialIcons links={socialLinks} />
           </div>
 
+          {/* Cover Video */}
+          {config.video_enabled && config.video_url && (
+            <section className="mt-6 w-full animate-fade-up" style={{ animationDelay: "0.05s" }}>
+              <div className="rounded-2xl overflow-hidden border border-border shadow-lg">
+                <video
+                  src={config.video_url as string}
+                  controls
+                  playsInline
+                  className="w-full aspect-video object-cover"
+                />
+              </div>
+            </section>
+          )}
+
           {/* Hero Section */}
           <section className="mt-8 text-center animate-fade-up" style={{ animationDelay: "0.1s" }}>
             <span className="inline-block px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary section-title-shimmer">
