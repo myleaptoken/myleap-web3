@@ -280,10 +280,3 @@
 .social-icon-twinkle {
   animation: twinkle 4s ease-in-out infinite;
 }
-
-.social-icon-twinkle:nth-child(1) { animation-delay: 0s; }
-.social-icon-twinkle:nth-child(2) { animation-delay: 0.8s; }
-.social-icon-twinkle:nth-child(3) { animation-delay: 1.6s; }
-.social-icon-twinkle:nth-child(4) { animation-delay: 2.4s; }
-.social-icon-twinkle:nth-child(5) { animation-delay: 3.2s; }
-.social-icon-twinkle:nth-child(6) { animation-delay: 4s; }
