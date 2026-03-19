@@ -21,6 +21,7 @@ import {
   updateSanacionOption,
   createSanacionOption,
   deleteSanacionOption,
+  updateLandingSanarConfig,
 } from "./actions"
 import {
   User,
@@ -43,6 +44,7 @@ import {
   Rocket,
   BookOpen,
   Sparkles,
+  Heart,
 } from "lucide-react"
 
 /* ─── Types ─── */
@@ -59,6 +61,7 @@ interface AdminData {
   cursosOneConfig: Record<string, unknown> | null
   sanacionConfig: Record<string, unknown> | null
   sanacionOptions: Record<string, unknown>[]
+  landingSanarConfig: Record<string, unknown> | null
 }
 
 const tabs = [
@@ -73,6 +76,7 @@ const tabs = [
   { key: "crowdfunding", label: "Crowdfunding", icon: Rocket },
   { key: "cursos", label: "Cursos ONE", icon: BookOpen },
   { key: "sanacion", label: "Sanacion", icon: Sparkles },
+  { key: "landingsanar", label: "Landing Sanar", icon: Heart },
 ]
 
 /* ─── Main ─── */
@@ -147,6 +151,7 @@ export function AdminPanel({ data }: { data: AdminData }) {
           {activeTab === "crowdfunding" && <CrowdfundingTab config={data.crowdfundingConfig} />}
           {activeTab === "cursos" && <CursosOneTab config={data.cursosOneConfig} />}
           {activeTab === "sanacion" && <SanacionTab config={data.sanacionConfig} options={data.sanacionOptions} />}
+          {activeTab === "landingsanar" && <LandingSanarTab config={data.landingSanarConfig} />}
         </div>
       </div>
     </div>
@@ -676,6 +681,88 @@ function SanacionTab({ config, options }: { config: Record<string, unknown> | nu
           )
         })}
       </div>
+    </div>
+  )
+}
+
+/* ─── Landing Sanar Tab ─── */
+function LandingSanarTab({ config }: { config: Record<string, unknown> | null }) {
+  const [data, setData] = useState<Record<string, unknown>>(config ?? {})
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  if (!config) {
+    return (
+      <div className="text-center py-8 text-sm text-muted-foreground">
+        No hay configuración de la landing /sanar. Crea un registro en la tabla landing_sanar_config.
+      </div>
+    )
+  }
+
+  function save() {
+    startTransition(async () => {
+      const id = data.id as string
+      const payload = { ...data }
+      delete payload.id
+      delete payload.updated_at
+      await updateLandingSanarConfig(id, payload)
+      router.refresh()
+    })
+  }
+
+  function updateField(field: string, value: unknown) {
+    setData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  return (
+    <div className="space-y-6">
+      <SectionHeader title="Landing /sanar" />
+      <p className="text-xs text-muted-foreground">
+        Configura el contenido de la landing page <span className="font-mono text-primary">/sanar</span>. 
+        Los testimonios, logo, redes sociales y servicios se obtienen de sus respectivas tabs.
+      </p>
+
+      {/* Hero Section */}
+      <div className="rounded-xl border border-border p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">Hero</h3>
+        <FieldInput label="Tagline" value={(data.hero_tagline as string) ?? ""} onChange={(v) => updateField("hero_tagline", v)} placeholder="Sanación Holística" />
+        <FieldInput label="Título Principal" value={(data.hero_title as string) ?? ""} onChange={(v) => updateField("hero_title", v)} placeholder="Transforma tu vida desde el interior" />
+        <FieldInput label="Descripción" value={(data.hero_description as string) ?? ""} onChange={(v) => updateField("hero_description", v)} textarea />
+        <FieldInput label="Texto Botón CTA" value={(data.hero_cta_text as string) ?? ""} onChange={(v) => updateField("hero_cta_text", v)} placeholder="Agendar Sesión" />
+      </div>
+
+      {/* About Section */}
+      <div className="rounded-xl border border-border p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">Acerca de</h3>
+        <FieldInput label="Título" value={(data.about_title as string) ?? ""} onChange={(v) => updateField("about_title", v)} placeholder="¿Qué es el Método ONE?" />
+        <FieldInput label="Descripción" value={(data.about_description as string) ?? ""} onChange={(v) => updateField("about_description", v)} textarea />
+      </div>
+
+      {/* Benefits */}
+      <div className="rounded-xl border border-border p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">Beneficios</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FieldInput label="Beneficio 1 - Título" value={(data.benefit_1_title as string) ?? ""} onChange={(v) => updateField("benefit_1_title", v)} />
+          <FieldInput label="Beneficio 1 - Descripción" value={(data.benefit_1_description as string) ?? ""} onChange={(v) => updateField("benefit_1_description", v)} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FieldInput label="Beneficio 2 - Título" value={(data.benefit_2_title as string) ?? ""} onChange={(v) => updateField("benefit_2_title", v)} />
+          <FieldInput label="Beneficio 2 - Descripción" value={(data.benefit_2_description as string) ?? ""} onChange={(v) => updateField("benefit_2_description", v)} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FieldInput label="Beneficio 3 - Título" value={(data.benefit_3_title as string) ?? ""} onChange={(v) => updateField("benefit_3_title", v)} />
+          <FieldInput label="Beneficio 3 - Descripción" value={(data.benefit_3_description as string) ?? ""} onChange={(v) => updateField("benefit_3_description", v)} />
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="rounded-xl border border-border p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">CTA Final</h3>
+        <FieldInput label="Título" value={(data.cta_title as string) ?? ""} onChange={(v) => updateField("cta_title", v)} placeholder="¿Listo para comenzar tu transformación?" />
+        <FieldInput label="Descripción" value={(data.cta_description as string) ?? ""} onChange={(v) => updateField("cta_description", v)} />
+      </div>
+
+      <ActionButton onClick={save} loading={isPending} label="Guardar Landing" icon={Save} />
     </div>
   )
 }

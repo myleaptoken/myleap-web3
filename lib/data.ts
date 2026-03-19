@@ -99,3 +99,23 @@ export async function getSanacionData() {
     }>,
   }
 }
+
+export async function getLandingSanarData() {
+  const supabase = await createClient()
+  const [landingRes, sanacionConfigRes, sanacionOptionsRes, profileRes, socialsRes, testimonialsRes] = await Promise.all([
+    supabase.from("landing_sanar_config").select("*").limit(1).single(),
+    supabase.from("sanacion_modal_config").select("*").limit(1).single(),
+    supabase.from("sanacion_options").select("*").eq("is_active", true).order("display_order"),
+    supabase.from("profile").select("*").limit(1).single(),
+    supabase.from("social_links").select("*").eq("is_active", true).order("display_order"),
+    supabase.from("testimonials").select("*").eq("is_active", true).order("display_order"),
+  ])
+  return {
+    landingConfig: landingRes.data as Record<string, unknown> | null,
+    sanacionConfig: sanacionConfigRes.data as Record<string, unknown> | null,
+    sanacionOptions: sanacionOptionsRes.data ?? [],
+    profile: profileRes.data,
+    socialLinks: socialsRes.data ?? [],
+    testimonials: testimonialsRes.data ?? [],
+  }
+}

@@ -191,6 +191,16 @@ export async function deleteSanacionOption(id: string) {
   return { success: true }
 }
 
+// ─── Landing Sanar Config ───
+export async function updateLandingSanarConfig(id: string, data: Record<string, unknown>) {
+  await requireAdmin()
+  const supabase = createAdminClient()
+  const { error } = await supabase.from("landing_sanar_config").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidateAll()
+  return { success: true }
+}
+
 // ─── Cursos ONE Config ───
 export async function updateCursosOneConfig(id: string, data: Record<string, unknown>) {
   await requireAdmin()
@@ -216,7 +226,7 @@ export async function getAdminData() {
   await requireAdmin()
   const supabase = createAdminClient()
 
-  const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes, testimonialsRes, preUsersRes, crowdfundingRes, cursosRes, sanacionConfigRes, sanacionOptionsRes] =
+  const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes, testimonialsRes, preUsersRes, crowdfundingRes, cursosRes, sanacionConfigRes, sanacionOptionsRes, landingSanarRes] =
     await Promise.all([
       supabase.from("profile").select("*").limit(1).single(),
       supabase.from("social_links").select("*").order("display_order"),
@@ -230,6 +240,7 @@ export async function getAdminData() {
       supabase.from("cursos_one_config").select("*").limit(1).single(),
       supabase.from("sanacion_modal_config").select("*").limit(1).single(),
       supabase.from("sanacion_options").select("*").order("display_order"),
+      supabase.from("landing_sanar_config").select("*").limit(1).single(),
     ])
 
   return {
@@ -245,5 +256,6 @@ export async function getAdminData() {
     cursosOneConfig: cursosRes.data,
     sanacionConfig: sanacionConfigRes.data,
     sanacionOptions: sanacionOptionsRes.data ?? [],
+    landingSanarConfig: landingSanarRes.data,
   }
 }
