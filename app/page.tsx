@@ -7,6 +7,7 @@ import { ProfileFooter } from "@/components/profile-footer"
 import { AmbientBackground } from "@/components/ambient-background"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { FloatingCta } from "@/components/floating-cta"
+import { UserButton } from "@/components/user-button"
 import { getPageData, getSanacionData } from "@/lib/data"
 
 export default async function ProfilePage() {
@@ -19,6 +20,7 @@ export default async function ProfilePage() {
   return (
     <>
       <ThemeToggle />
+      <UserButton />
       <FloatingCta 
         enabled={profile.floating_cta_enabled} 
         text={profile.floating_cta_text} 
