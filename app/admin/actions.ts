@@ -14,6 +14,16 @@ async function requireAdmin() {
   if (!authed) throw new Error("No autorizado")
 }
 
+// ─── User Profiles ───
+export async function updateUserProfile(id: string, data: Record<string, unknown>) {
+  await requireAdmin()
+  const supabase = createAdminClient()
+  const { error } = await supabase.from("user_profiles").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidateAll()
+  return { success: true }
+}
+
 // ─── Profile ───
 export async function updateProfile(id: string, data: Record<string, unknown>) {
   await requireAdmin()
@@ -226,7 +236,7 @@ export async function getAdminData() {
   await requireAdmin()
   const supabase = createAdminClient()
 
-  const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes, testimonialsRes, preUsersRes, crowdfundingRes, cursosRes, sanacionConfigRes, sanacionOptionsRes, landingSanarRes] =
+  const [profileRes, socialsRes, ctaRes, modalsRes, facilitatorsRes, surveysRes, testimonialsRes, preUsersRes, crowdfundingRes, cursosRes, sanacionConfigRes, sanacionOptionsRes, landingSanarRes, userProfilesRes] =
     await Promise.all([
       supabase.from("profile").select("*").limit(1).single(),
       supabase.from("social_links").select("*").order("display_order"),
@@ -241,6 +251,7 @@ export async function getAdminData() {
       supabase.from("sanacion_modal_config").select("*").limit(1).single(),
       supabase.from("sanacion_options").select("*").order("display_order"),
       supabase.from("landing_sanar_config").select("*").limit(1).single(),
+      supabase.from("user_profiles").select("*").order("created_at", { ascending: false }),
     ])
 
   return {
@@ -257,5 +268,6 @@ export async function getAdminData() {
     sanacionConfig: sanacionConfigRes.data,
     sanacionOptions: sanacionOptionsRes.data ?? [],
     landingSanarConfig: landingSanarRes.data,
+    userProfiles: userProfilesRes.data ?? [],
   }
 }

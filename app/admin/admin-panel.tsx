@@ -22,6 +22,7 @@ import {
   createSanacionOption,
   deleteSanacionOption,
   updateLandingSanarConfig,
+  updateUserProfile,
 } from "./actions"
 import {
   User,
@@ -45,6 +46,7 @@ import {
   BookOpen,
   Sparkles,
   Heart,
+  UserCircle,
 } from "lucide-react"
 
 /* ─── Types ─── */
@@ -62,6 +64,7 @@ interface AdminData {
   sanacionConfig: Record<string, unknown> | null
   sanacionOptions: Record<string, unknown>[]
   landingSanarConfig: Record<string, unknown> | null
+  userProfiles: Record<string, unknown>[]
 }
 
 const tabs = [
@@ -77,6 +80,7 @@ const tabs = [
   { key: "cursos", label: "Cursos ONE", icon: BookOpen },
   { key: "sanacion", label: "Sanacion", icon: Sparkles },
   { key: "landingsanar", label: "Landing Sanar", icon: Heart },
+  { key: "usuarios", label: "Usuarios", icon: UserCircle },
 ]
 
 /* ─── Main ─── */
@@ -152,6 +156,7 @@ export function AdminPanel({ data }: { data: AdminData }) {
           {activeTab === "cursos" && <CursosOneTab config={data.cursosOneConfig} />}
           {activeTab === "sanacion" && <SanacionTab config={data.sanacionConfig} options={data.sanacionOptions} />}
           {activeTab === "landingsanar" && <LandingSanarTab config={data.landingSanarConfig} />}
+          {activeTab === "usuarios" && <UsuariosTab users={data.userProfiles} />}
         </div>
       </div>
     </div>
@@ -770,6 +775,136 @@ function LandingSanarTab({ config }: { config: Record<string, unknown> | null })
       </div>
 
       <ActionButton onClick={save} loading={isPending} label="Guardar Landing" icon={Save} />
+    </div>
+  )
+}
+
+/* ─── Usuarios Tab ─── */
+function UsuariosTab({ users }: { users: Record<string, unknown>[] }) {
+  const [userList, setUserList] = useState(users)
+  const [editingUser, setEditingUser] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  function updateUser(id: string, field: string, value: unknown) {
+    setUserList((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, [field]: value } : u))
+    )
+  }
+
+  function saveUser(id: string) {
+    const user = userList.find((u) => u.id === id)
+    if (!user) return
+    startTransition(async () => {
+      await updateUserProfile(id, { role: user.role, is_active: user.is_active })
+      setEditingUser(null)
+      router.refresh()
+    })
+  }
+
+  const roleOptions = [
+    { value: "user", label: "Usuario" },
+    { value: "facilitator", label: "Terapeuta" },
+    { value: "premium", label: "Premium" },
+    { value: "admin", label: "Admin" },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <SectionHeader title="Usuarios Registrados" />
+      <p className="text-xs text-muted-foreground">
+        Usuarios que se han registrado con Supabase Auth. Podes cambiar su rol y estado.
+      </p>
+
+      {users.length === 0 ? (
+        <div className="text-center py-8 text-sm text-muted-foreground">
+          No hay usuarios registrados aún.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {userList.map((user) => {
+            const isEditing = editingUser === user.id
+            return (
+              <div
+                key={user.id as string}
+                className="rounded-xl border border-border p-4 space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {(user.full_name as string) || "Sin nombre"}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {user.email as string}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full ${
+                        user.is_active
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      {user.is_active ? "Activo" : "Inactivo"}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                      {user.role as string}
+                    </span>
+                    <button
+                      onClick={() => setEditingUser(isEditing ? null : (user.id as string))}
+                      className="p-1.5 rounded-lg hover:bg-secondary transition-colors"
+                    >
+                      {isEditing ? <X size={14} /> : <Pencil size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <div className="pt-3 border-t border-border space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Rol</label>
+                        <select
+                          value={user.role as string}
+                          onChange={(e) => updateUser(user.id as string, "role", e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm"
+                        >
+                          {roleOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Estado</label>
+                        <ToggleField
+                          label=""
+                          checked={user.is_active as boolean}
+                          onChange={(v) => updateUser(user.id as string, "is_active", v)}
+                        />
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
+                      <p>ID: {user.id as string}</p>
+                      <p>Registrado: {new Date(user.created_at as string).toLocaleDateString("es-AR")}</p>
+                      {user.pre_user_id && <p>Pre-usuario vinculado</p>}
+                      {user.facilitator_id && <p>Terapeuta vinculado</p>}
+                    </div>
+                    <ActionButton
+                      onClick={() => saveUser(user.id as string)}
+                      loading={isPending}
+                      label="Guardar"
+                      icon={Save}
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
