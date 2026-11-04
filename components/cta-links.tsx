@@ -142,7 +142,14 @@ function CTAButton({
 }) {
   const [isHovered, setIsHovered] = useState(false)
   const variant = link.variant || "primary"
+  const modal = link.cta_modal_content?.[0]
+  const isExternal = modal?.modal_type === "external" && modal.cta_button_url
   const isNavigate = link.modal_key === "navigate" && link.url
+  const externalUrl = isExternal
+    ? /^https?:\/\//i.test(modal.cta_button_url!)
+      ? modal.cta_button_url!
+      : `https://${modal.cta_button_url}`
+    : null
 
   const classes = `
     group relative flex items-center gap-4 rounded-xl border p-4 sm:p-5
@@ -150,6 +157,22 @@ function CTAButton({
     hover:scale-[1.02] hover:-translate-y-0.5
     ${variantStyles[variant] ?? variantStyles.primary}
   `
+
+  if (externalUrl) {
+    return (
+      <a
+        href={externalUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={classes}
+        style={{ animationDelay: `${0.05 * index + 0.3}s` }}
+      >
+        <CTAInner link={link} isHovered={isHovered} variant={variant} />
+      </a>
+    )
+  }
 
   if (isNavigate) {
     return (
