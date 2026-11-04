@@ -1358,7 +1358,7 @@ function ModalsTab({
                 ))}
               </select>
             </div>
-            <FieldInput label="Tipo de Modal" value={(editing.modal_type as string) ?? ""} onChange={(v) => setEditing({ ...editing, modal_type: v })} placeholder="info, zoom, video, ebook, survey, facilitators" />
+            <FieldInput label="Tipo de Modal" value={(editing.modal_type as string) ?? ""} onChange={(v) => setEditing({ ...editing, modal_type: v })} placeholder="info, zoom, video, ebook, survey, facilitators, external" />
             <FieldInput label="Titulo" value={(editing.modal_title as string) ?? ""} onChange={(v) => setEditing({ ...editing, modal_title: v })} />
             <FieldInput label="Subtitulo" value={(editing.modal_subtitle as string) ?? ""} onChange={(v) => setEditing({ ...editing, modal_subtitle: v })} />
             <FieldInput label="Texto boton CTA" value={(editing.cta_button_text as string) ?? ""} onChange={(v) => setEditing({ ...editing, cta_button_text: v })} />

@@ -59,6 +59,8 @@ export function DynamicModal({
   const extra = (modal.extra_data ?? {}) as Record<string, unknown>
 
   switch (modal.modal_type) {
+    case "external":
+      return null
     case "survey":
       return (
         <SurveyModal
