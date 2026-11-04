@@ -143,12 +143,14 @@ function CTAButton({
   const [isHovered, setIsHovered] = useState(false)
   const variant = link.variant || "primary"
   const modal = link.cta_modal_content?.[0]
-  const isExternal = modal?.modal_type === "external" && modal.cta_button_url
+  const modalType = modal?.modal_type?.trim().toLowerCase()
+  const externalUrlValue = modal?.cta_button_url?.trim()
+  const isExternal = modalType === "external" && Boolean(externalUrlValue)
   const isNavigate = link.modal_key === "navigate" && link.url
   const externalUrl = isExternal
-    ? /^https?:\/\//i.test(modal.cta_button_url!)
-      ? modal.cta_button_url!
-      : `https://${modal.cta_button_url}`
+    ? /^https?:\/\//i.test(externalUrlValue!)
+      ? externalUrlValue!
+      : `https://${externalUrlValue}`
     : null
 
   const classes = `
